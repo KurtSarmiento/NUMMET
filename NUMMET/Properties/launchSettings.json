@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "NUMMET (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "NUMMET (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
