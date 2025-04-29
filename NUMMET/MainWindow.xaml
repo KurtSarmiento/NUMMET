@@ -11,7 +11,7 @@
 
     <Grid>
         <StackPanel>
-            
+            <Button x:Name="Sample" Content="Sample Button"/>
         </StackPanel>
     </Grid>
 </Window>
