@@ -28,9 +28,19 @@ namespace NUMMET
             this.InitializeComponent();
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
+        private void Button_Bisection_Click(object sender, RoutedEventArgs e)
         {
-            myButton.Content = "Clicked";
+
+        }
+
+        private void Button_NewtonRaphson_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Secant_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
