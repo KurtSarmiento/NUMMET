@@ -2,9 +2,16 @@
     x:Class="NUMMET.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="NUMMET">
+    Title="NUMBILATICS">
 
-    <Frame x:Name="MainFrame"/>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-    
+        <Image Source="Assets/banner.png" Stretch="Fill" HorizontalAlignment="Stretch" VerticalAlignment="Top" Grid.Row="0"/>
+
+        <Frame x:Name="MainFrame" Grid.Row="1" />
+    </Grid>
 </Window>
