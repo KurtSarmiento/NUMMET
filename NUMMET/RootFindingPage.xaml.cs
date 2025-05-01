@@ -21,6 +21,7 @@ namespace NUMMET
             TextBox_Guess2.IsEnabled = false;
             TextBox_PercentError.IsEnabled = false;
         }
+
         private void DisableTextBoxesForMethod(string method)
         {
             TextBox_Equation.IsEnabled = false;
@@ -94,55 +95,10 @@ namespace NUMMET
                     case "Newton-Raphson":
                         await RunNewtonRaphsonMethod();
                         break;
-                    default:
-                        TextBlock_Solution.Text = "Only Bisection and Newton-Raphson are implemented.";
+                    case "Secant":
+                        await RunSecantMethod();
                         break;
                 }
-            }
-            catch (Exception ex)
-            {
-                TextBlock_Solution.Text = $"Error: {ex.Message}";
-            }
-        }
-
-        private async Task RunNewtonRaphsonMethod()
-        {
-            try
-            {
-                string fx = TextBox_Equation.Text;
-                string dfx = TextBox_EquationDerivative.Text;
-                double x0 = double.Parse(TextBox_Guess1.Text);
-                double es = double.Parse(TextBox_PercentError.Text);
-                double x1 = 0, ea = 100;
-                int iteration = 0;
-
-                string output = $"{"Iter",-8} {"x0",-16} {"f(x0)",-16} {"f'(x0)",-16} {"ea (%)",-8}\n";
-
-                do
-                {
-                    double fxVal = EvaluateFunction(fx, x0);
-                    double dfxVal = EvaluateFunction(dfx, x0);
-
-                    if (Math.Abs(dfxVal) < 1e-12)
-                    {
-                        TextBlock_Solution.Text = "Derivative is too small. Newton-Raphson cannot proceed.";
-                        return;
-                    }
-
-                    x1 = x0 - fxVal / dfxVal;
-
-                    if (iteration > 0)
-                        ea = Math.Abs((x1 - x0) / x1) * 100;
-
-                    output += $"{++iteration,-8} {x0,-16:F4} {fxVal,-16:F4} {dfxVal,-16:F4} {ea,-8:F2}\n";
-
-                    x0 = x1;
-                    await Task.Delay(50);
-                }
-                while (ea > es);
-
-                output += $"\nAPPROXIMATE ROOT: {x1:F4}";
-                await TypeOutSolution(output);
             }
             catch (Exception ex)
             {
@@ -198,6 +154,98 @@ namespace NUMMET
 
                 output += $"\nAPPROXIMATE ROOT: {c:F4}";
                 await TypeOutSolution(output);
+            }
+            catch (Exception ex)
+            {
+                TextBlock_Solution.Text = $"Error: {ex.Message}";
+            }
+        }
+
+        private async Task RunNewtonRaphsonMethod()
+        {
+            try
+            {
+                string fx = TextBox_Equation.Text;
+                string dfx = TextBox_EquationDerivative.Text;
+                double x0 = double.Parse(TextBox_Guess1.Text);
+                double es = double.Parse(TextBox_PercentError.Text);
+                double x1 = 0, ea = 100;
+                int iteration = 0;
+
+                string output = $"{"Iter",-8} {"x0",-16} {"f(x0)",-16} {"f'(x0)",-16} {"ea (%)",-8}\n";
+
+                do
+                {
+                    double fxVal = EvaluateFunction(fx, x0);
+                    double dfxVal = EvaluateFunction(dfx, x0);
+
+                    if (Math.Abs(dfxVal) < 1e-12)
+                    {
+                        TextBlock_Solution.Text = "Derivative is too small. Newton-Raphson cannot proceed.";
+                        return;
+                    }
+
+                    x1 = x0 - fxVal / dfxVal;
+
+                    if (iteration > 0)
+                        ea = Math.Abs((x1 - x0) / x1) * 100;
+
+                    output += $"{++iteration,-8} {x0,-16:F4} {fxVal,-16:F4} {dfxVal,-16:F4} {ea,-8:F2}\n";
+
+                    x0 = x1;
+                    await Task.Delay(50);
+                }
+                while (ea > es);
+
+                output += $"\nAPPROXIMATE ROOT: {x1:F4}";
+                await TypeOutSolution(output);
+            }
+            catch (Exception ex)
+            {
+                TextBlock_Solution.Text = $"Error: {ex.Message}";
+            }
+        }
+
+        private async Task RunSecantMethod()
+        {
+            try
+            {
+                string fx = TextBox_Equation.Text;
+                double x0 = double.Parse(TextBox_Guess1.Text);  // First guess
+                double x1 = double.Parse(TextBox_Guess2.Text);  // Second guess
+                double es = double.Parse(TextBox_PercentError.Text);  // Desired percent error
+                double ea = 100;  // Initial error
+                int iteration = 0;
+
+                string output = $"{"Iter",-8} {"x0",-16} {"x1",-16} {"f(x0)",-16} {"f(x1)",-16} {"ea (%)",-8}\n";
+
+                do
+                {
+                    double fx0 = EvaluateFunction(fx, x0);  // f(x0)
+                    double fx1 = EvaluateFunction(fx, x1);  // f(x1)
+
+                    if (Math.Abs(fx1 - fx0) < 1e-12)  // Avoid division by a very small difference
+                    {
+                        TextBlock_Solution.Text = "The values are too close. Secant cannot proceed.";
+                        return;
+                    }
+
+                    // Secant Method formula: x2 = x1 - f(x1) * (x1 - x0) / (f(x1) - f(x0))
+                    double x2 = x1 - fx1 * (x1 - x0) / (fx1 - fx0);
+
+                    if (iteration > 0)
+                        ea = Math.Abs((x2 - x1) / x2) * 100;  // Percent error
+
+                    output += $"{++iteration,-8} {x0,-16:F4} {x1,-16:F4} {fx0,-16:F4} {fx1,-16:F4} {ea,-8:F2}\n";
+
+                    x0 = x1;  // Update x0
+                    x1 = x2;  // Update x1
+                    await Task.Delay(50);
+                }
+                while (ea > es);  // Continue until the error is within the desired tolerance
+
+                output += $"\nAPPROXIMATE ROOT: {x1:F4}";
+                await TypeOutSolution(output);  // Display the result
             }
             catch (Exception ex)
             {
