@@ -9,10 +9,28 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
+    
     <Grid>
-        <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="100">
-            <Button x:Name="Button_Back" Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10" Width="60" Height="40" Click="Button_Back_Click" Grid.Row="1" />
-            <AppBarSeparator/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Button x:Name="Button_Back" Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30" Width="60" Height="40" Click="Button_Back_Click" Grid.Row="1" />
+        <StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="70">
+            <ComboBox x:Name="Methods" Header="Method:" Width="300" Height="60" Margin="10">
+                <ComboBoxItem Content="Bisection" />
+                <ComboBoxItem Content="Newton-Raphson" />
+                <ComboBoxItem Content="Secant" />
+            </ComboBox>
+            <TextBox x:Name="TextBox_Equation" Header="f(x) =" Width="300" Height="60" Margin="10"/>
+            <TextBox x:Name="TextBox_Derivative" Header="f'(x) =" Width="300" Height="60" Margin="10"/>
+            <TextBox x:Name="TextBox_Guess1" Header="x0 =" Width="300" Height="60" Margin="10"/>
+            <TextBox x:Name="TextBox_Guess2" Header="x1 =" Width="300" Height="60" Margin="10"/>
+            <TextBox x:Name="TextBox_PercentError" Header="Percent Error:" Width="300" Height="60" Margin="10"/>
+            <Button x:Name="Button_Submit" Content="Submit" Width="300" Height="40" Margin="10"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="70">
+            <TextBox x:Name="TextBox_Solution" Header="Solution" Width="650" Height="400"/>
         </StackPanel>
     </Grid>
 </Page>
