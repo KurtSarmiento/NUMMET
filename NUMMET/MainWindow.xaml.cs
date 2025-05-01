@@ -28,18 +28,8 @@ namespace NUMMET
             this.InitializeComponent();
         }
 
-        private void Button_Bisection_Click(object sender, RoutedEventArgs e)
+        private void Button_RootFinding_Click(object sender, RoutedEventArgs e)
         {
-        }
-
-        private void Button_NewtonRaphson_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Button_Secant_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

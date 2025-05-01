@@ -11,10 +11,7 @@
 
     <Grid Padding="10" Margin="10">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-            <Button x:Name="Button_Bisection" Content="Bisection Method" Click="Button_Bisection_Click" Width="300" Margin="10"/>
-            <Button x:Name="Button_NewtonRaphson" Content="Newton-Raphson Method" Click="Button_NewtonRaphson_Click" Width="300" Margin="10"/>
-            <Button x:Name="Button_Secant" Content="Secant Method" Click="Button_Secant_Click" Width="300" Margin="10"/>
-
+            <Button x:Name="Button_RootFinding" Content="Root Finding Methods" Click="Button_RootFinding_Click" Width="300" Margin="10"/>
         </StackPanel>
     </Grid>
 </Window>
