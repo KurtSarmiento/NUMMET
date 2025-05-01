@@ -15,21 +15,68 @@ namespace NUMMET
         {
             this.InitializeComponent();
             Button_Submit.Click += Button_Submit_Click;
+            TextBox_Equation.IsEnabled = false;
+            TextBox_EquationDerivative.IsEnabled = false;
+            TextBox_Guess1.IsEnabled = false;
+            TextBox_Guess2.IsEnabled = false;
+            TextBox_PercentError.IsEnabled = false;
+        }
+        private void DisableTextBoxesForMethod(string method)
+        {
+            TextBox_Equation.IsEnabled = false;
+            TextBox_EquationDerivative.IsEnabled = false;
+            TextBox_Guess1.IsEnabled = false;
+            TextBox_Guess2.IsEnabled = false;
+            TextBox_PercentError.IsEnabled = false;
+
+            if (method == "Bisection")
+            {
+                TextBox_Equation.IsEnabled = true;
+                TextBox_Guess1.IsEnabled = true;
+                TextBox_Guess2.IsEnabled = true;
+                TextBox_PercentError.IsEnabled = true;
+            }
+            else if (method == "Newton-Raphson")
+            {
+                TextBox_Equation.IsEnabled = true;
+                TextBox_EquationDerivative.IsEnabled = true;
+                TextBox_Guess1.IsEnabled = true;
+                TextBox_PercentError.IsEnabled = true;
+            }
+            else if (method == "Secant")
+            {
+                TextBox_Equation.IsEnabled = true;
+                TextBox_Guess1.IsEnabled = true;
+                TextBox_Guess2.IsEnabled = true;
+                TextBox_PercentError.IsEnabled = true;
+            }
+        }
+
+        private void Methods_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (Methods.SelectedItem != null)
+            {
+                string selectedMethod = ((ComboBoxItem)Methods.SelectedItem).Content.ToString();
+                DisableTextBoxesForMethod(selectedMethod);
+            }
+            else
+            {
+                DisableTextBoxesForMethod("");
+            }
         }
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
-            // Clear all the input fields
+            Methods.SelectedItem = null;
+
             TextBox_Equation.Text = string.Empty;
             TextBox_EquationDerivative.Text = string.Empty;
             TextBox_Guess1.Text = string.Empty;
             TextBox_Guess2.Text = string.Empty;
             TextBox_PercentError.Text = string.Empty;
 
-            // Optionally, clear the method selection
             Methods.SelectedIndex = -1;
 
-            // Clear the solution area
             TextBlock_Solution.Text = string.Empty;
         }
 
