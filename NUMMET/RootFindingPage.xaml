@@ -15,6 +15,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Button x:Name="Button_Back" Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30" Width="60" Height="40" Click="Button_Back_Click" Grid.Row="1" />
+            <TextBlock Grid.ColumnSpan="2" Text="⋆˚✿˖° Root Finding Calculator ⋆𐙚₊˚⊹♡" HorizontalAlignment="Center" FontSize="36" Foreground="#fba2a1" FontFamily="Montserrat" FontWeight="SemiBold" Padding="20"/>
             <StackPanel Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="70">
                 <ComboBox x:Name="Methods" Header="Method:" Width="300" Height="60" Margin="10" SelectionChanged="Methods_SelectionChanged">
                     <ComboBoxItem Content="Bisection" />
