@@ -27,6 +27,9 @@ namespace NUMMET
             Frame.Navigate(typeof(RootFindingPage));
         }
 
-        
+        private void Button_EquationSolver_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(EquationSolverPage));
+        }
     }
 }
