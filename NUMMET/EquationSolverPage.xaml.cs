@@ -14,9 +14,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System.Text;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace NUMMET
 {
     public sealed partial class EquationSolverPage : Page
@@ -24,6 +21,7 @@ namespace NUMMET
         private int equationCount = 0;
         private List<List<TextBox>> coefficientTextBoxes = new List<List<TextBox>>();
         private List<TextBox> rhsTextBoxes = new List<TextBox>();
+        private List<TextBox> initialGuessTextBoxes = new List<TextBox>(); // To store initial guess input fields
         private readonly string[] variableNames = { "x", "y", "z", "w", "v" };
         public EquationSolverPage()
         {
@@ -80,6 +78,43 @@ namespace NUMMET
                     EquationInputPanel.Children.Add(row);
                 }
             }
+            UpdateGuessVisibility();
+        }
+        private void UpdateGuessVisibility()
+        {
+            var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var selectedCount = (ComboBox_EquationCount.SelectedItem as ComboBoxItem)?.Content.ToString();
+
+            if (selectedMethod == "Gauss-Seidel" && int.TryParse(selectedCount, out int count))
+            {
+                InitialGuessPanel.Visibility = Visibility.Visible;
+                GenerateGuessInputs(count);
+            }
+            else
+            {
+                InitialGuessPanel.Visibility = Visibility.Collapsed;
+                GuessInputFields.Children.Clear();
+                initialGuessTextBoxes.Clear(); // Clear guess input fields
+            }
+        }
+        private void GenerateGuessInputs(int count)
+        {
+            GuessInputFields.Children.Clear();
+            initialGuessTextBoxes.Clear(); // Clear any existing textboxes
+            string[] variableNames = { "x", "y", "z", "w", "v" };
+
+            for (int i = 0; i < count; i++)
+            {
+                var tb = new TextBox
+                {
+                    Width = 200,
+                    Height = 40,
+                    Margin = new Thickness(5),
+                    PlaceholderText = $"Initial guess for {variableNames[i]}"
+                };
+                GuessInputFields.Children.Add(tb);
+                initialGuessTextBoxes.Add(tb); // Add the textbox to the list
+            }
         }
         private void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
@@ -106,7 +141,21 @@ namespace NUMMET
                             result = SolveUsingGaussJordan(matrix, equationCount);
                             break;
                         case "Gauss-Seidel":
-                            result = SolveUsingGaussSeidel(matrix, equationCount);
+                            // Retrieve initial guesses from the textboxes
+                            double[] initialGuesses = new double[equationCount];
+                            for (int i = 0; i < equationCount; i++)
+                            {
+                                if (double.TryParse(initialGuessTextBoxes[i].Text, out double guess))
+                                {
+                                    initialGuesses[i] = guess;
+                                }
+                                else
+                                {
+                                    TextBlock_Solution.Text = "Error: Please enter valid initial guesses for all variables.";
+                                    return;
+                                }
+                            }
+                            result = SolveUsingGaussSeidel(matrix, equationCount, initialGuesses: initialGuesses);
                             break;
                         default:
                             result = SolveUsingGaussElimination(matrix, equationCount);
@@ -121,8 +170,6 @@ namespace NUMMET
                 TextBlock_Solution.Text = "Error: " + ex.Message;
             }
         }
-
-
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
             foreach (var row in coefficientTextBoxes)
@@ -246,17 +293,19 @@ namespace NUMMET
 
             return steps.ToString();
         }
-        private string SolveUsingGaussSeidel(double[,] augmentedMatrix, int n, int maxIterations = 100, double tolerance = 1e-6)
+        private string SolveUsingGaussSeidel(double[,] augmentedMatrix, int n, int maxIterations = 100, double tolerance = 1e-6, double[] initialGuesses = null)
         {
             StringBuilder steps = new StringBuilder();
-            double[] x = new double[n];
+            double[] x = initialGuesses ?? new double[n]; // Use provided guesses or default to 0
             double[] prevX = new double[n];
             int j = 0;
 
-            steps.AppendLine("🔹 Initial Guess: All variables set to 0\n");
-
-            // Print the Gauss-Seidel equation once at the start
-            steps.AppendLine("For each variable, the Gauss-Seidel formula is applied:");
+            steps.AppendLine("🔹 Initial Guesses:");
+            for (int i = 0; i < n; i++)
+            {
+                steps.AppendLine($"{variableNames[i]} = {x[i]:F6}");
+            }
+            steps.AppendLine("\nFor each variable, the Gauss-Seidel formula is applied:");
             for (int i = 0; i < n; i++)
             {
                 steps.AppendLine($"{variableNames[i]} = (b[{i}] - sum(a[{i},{j}] * x[{j}] for j ≠ {i})) / a[{i},{i}]");
@@ -267,11 +316,10 @@ namespace NUMMET
             {
                 steps.AppendLine($"🔄 Iteration {iter}:");
 
-                // Iterate through each variable to update it using the formula
                 for (int i = 0; i < n; i++)
                 {
                     double sum = augmentedMatrix[i, n]; // RHS
-                    for ( j = 0; j < n; j++)
+                    for (j = 0; j < n; j++)
                     {
                         if (i != j)
                         {
@@ -281,15 +329,12 @@ namespace NUMMET
 
                     double newX = sum / augmentedMatrix[i, i];
 
-                    // Show the equation and the computation for each variable
-                    steps.AppendLine($"{variableNames[i]} = (b[{i}] - sum(a[{i},{j}] * x[{j}] for j ≠ {i})) / a[{i},{i}] = ");
-                    steps.AppendLine($"= ({augmentedMatrix[i, n]} - " + string.Join(" - ", Enumerable.Range(0, n).Where(j => j != i).Select(j => $"{augmentedMatrix[i, j]} * {x[j]:F6}")) + $") / {augmentedMatrix[i, i]} = {newX:F5}");
+                    steps.AppendLine($"{variableNames[i]} = ({augmentedMatrix[i, n]} - " + string.Join(" - ", Enumerable.Range(0, n).Where(k => k != i).Select(k => $"{augmentedMatrix[i, k]} * {x[k]:F6}")) + $") / {augmentedMatrix[i, i]} = {newX:F5}");
 
                     prevX[i] = x[i];
                     x[i] = newX;
                 }
 
-                // Convergence check
                 bool isConverged = true;
                 for (int i = 0; i < n; i++)
                 {
@@ -317,11 +362,6 @@ namespace NUMMET
 
             return steps.ToString();
         }
-
-
-
-
-
         private string MatrixToString(double[,] matrix, int n)
         {
             StringBuilder sb = new StringBuilder();
@@ -337,13 +377,11 @@ namespace NUMMET
             }
             return sb.ToString();
         }
-
-
         private void ComboBox_Method_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            TextBlock_Solution.Text = ""; 
+            TextBlock_Solution.Text = "";
+            UpdateGuessVisibility();
         }
-
         private void Button_Back_Click(object sender, RoutedEventArgs e)
         {
             Frame.GoBack();

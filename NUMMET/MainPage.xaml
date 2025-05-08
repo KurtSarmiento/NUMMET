@@ -19,7 +19,7 @@
             <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="100">
                 <TextBlock Text="⋆˚✿˖° Welcome to NUMBILATICS ⋆𐙚₊˚⊹♡" HorizontalAlignment="Center" FontSize="36" Foreground="#fba2a1" FontFamily="Montserrat" FontWeight="SemiBold" Padding="20"/>
                 <Button x:Name="Button_RootFinding" Content="Root Finding" Width="300" Click="Button_RootFinding_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
-                <Button x:Name="Button_EquationSolver" Content="Equation Solver" Width="300" Click="Button_EquationSolver_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
+                <Button x:Name="Button_EquationSolver" Content="Linear Equation Solver" Width="300" Click="Button_EquationSolver_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
                 <Image Source="Assets/ribbon.png" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
             </StackPanel>
         </Grid>
