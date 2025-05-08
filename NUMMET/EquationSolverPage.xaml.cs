@@ -96,7 +96,18 @@ namespace NUMMET
                     matrix[i, equationCount] = double.Parse(rhsTextBoxes[i].Text);
                 }
 
-                var result = SolveUsingGaussElimination(matrix, equationCount);
+                string result = "";
+
+                if (ComboBox_Method.SelectedItem is ComboBoxItem selectedMethod &&
+                    selectedMethod.Content.ToString() == "Gauss-Jordan")
+                {
+                    result = SolveUsingGaussJordan(matrix, equationCount);
+                }
+                else
+                {
+                    result = SolveUsingGaussElimination(matrix, equationCount);
+                }
+
                 TextBlock_Solution.Text = result;
             }
             catch (Exception ex)
@@ -104,6 +115,7 @@ namespace NUMMET
                 TextBlock_Solution.Text = "Error: " + ex.Message;
             }
         }
+
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
@@ -182,6 +194,53 @@ namespace NUMMET
 
             return steps.ToString();
         }
+        private string SolveUsingGaussJordan(double[,] augmentedMatrix, int n)
+        {
+            StringBuilder steps = new StringBuilder();
+
+            steps.AppendLine("🔹 Initial Augmented Matrix:");
+            steps.AppendLine(MatrixToString(augmentedMatrix, n));
+
+            for (int i = 0; i < n; i++)
+            {
+                double pivot = augmentedMatrix[i, i];
+                if (Math.Abs(pivot) < 1e-10)
+                    return $"Math Error: Zero pivot found at row {i + 1}.";
+
+                // Normalize pivot row
+                steps.AppendLine($"🔁 R{i + 1} = R{i + 1} / {pivot:F3}");
+                for (int j = 0; j <= n; j++)
+                {
+                    augmentedMatrix[i, j] /= pivot;
+                }
+
+                // Eliminate other rows
+                for (int k = 0; k < n; k++)
+                {
+                    if (k == i) continue;
+
+                    double factor = augmentedMatrix[k, i];
+                    steps.AppendLine($"🔁 R{k + 1} = R{k + 1} - ({factor:F3}) * R{i + 1}");
+
+                    for (int j = 0; j <= n; j++)
+                    {
+                        augmentedMatrix[k, j] -= factor * augmentedMatrix[i, j];
+                    }
+                }
+
+                steps.AppendLine("🔹 Matrix after step:");
+                steps.AppendLine(MatrixToString(augmentedMatrix, n));
+            }
+
+            steps.AppendLine("✅ Final Solution:");
+            for (int i = 0; i < n; i++)
+            {
+                steps.AppendLine($"{variableNames[i]} = {augmentedMatrix[i, n]:F6}");
+            }
+
+            return steps.ToString();
+        }
+
         private string MatrixToString(double[,] matrix, int n)
         {
             StringBuilder sb = new StringBuilder();
