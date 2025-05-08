@@ -98,14 +98,20 @@ namespace NUMMET
 
                 string result = "";
 
-                if (ComboBox_Method.SelectedItem is ComboBoxItem selectedMethod &&
-                    selectedMethod.Content.ToString() == "Gauss-Jordan")
+                if (ComboBox_Method.SelectedItem is ComboBoxItem selectedMethod)
                 {
-                    result = SolveUsingGaussJordan(matrix, equationCount);
-                }
-                else
-                {
-                    result = SolveUsingGaussElimination(matrix, equationCount);
+                    switch (selectedMethod.Content.ToString())
+                    {
+                        case "Gauss-Jordan":
+                            result = SolveUsingGaussJordan(matrix, equationCount);
+                            break;
+                        case "Gauss-Seidel":
+                            result = SolveUsingGaussSeidel(matrix, equationCount);
+                            break;
+                        default:
+                            result = SolveUsingGaussElimination(matrix, equationCount);
+                            break;
+                    }
                 }
 
                 TextBlock_Solution.Text = result;
@@ -240,6 +246,81 @@ namespace NUMMET
 
             return steps.ToString();
         }
+        private string SolveUsingGaussSeidel(double[,] augmentedMatrix, int n, int maxIterations = 100, double tolerance = 1e-6)
+        {
+            StringBuilder steps = new StringBuilder();
+            double[] x = new double[n];
+            double[] prevX = new double[n];
+            int j = 0;
+
+            steps.AppendLine("🔹 Initial Guess: All variables set to 0\n");
+
+            // Print the Gauss-Seidel equation once at the start
+            steps.AppendLine("For each variable, the Gauss-Seidel formula is applied:");
+            for (int i = 0; i < n; i++)
+            {
+                steps.AppendLine($"{variableNames[i]} = (b[{i}] - sum(a[{i},{j}] * x[{j}] for j ≠ {i})) / a[{i},{i}]");
+            }
+            steps.AppendLine("\nStarting iterations...\n");
+
+            for (int iter = 1; iter <= maxIterations; iter++)
+            {
+                steps.AppendLine($"🔄 Iteration {iter}:");
+
+                // Iterate through each variable to update it using the formula
+                for (int i = 0; i < n; i++)
+                {
+                    double sum = augmentedMatrix[i, n]; // RHS
+                    for ( j = 0; j < n; j++)
+                    {
+                        if (i != j)
+                        {
+                            sum -= augmentedMatrix[i, j] * x[j];
+                        }
+                    }
+
+                    double newX = sum / augmentedMatrix[i, i];
+
+                    // Show the equation and the computation for each variable
+                    steps.AppendLine($"{variableNames[i]} = (b[{i}] - sum(a[{i},{j}] * x[{j}] for j ≠ {i})) / a[{i},{i}] = ");
+                    steps.AppendLine($"= ({augmentedMatrix[i, n]} - " + string.Join(" - ", Enumerable.Range(0, n).Where(j => j != i).Select(j => $"{augmentedMatrix[i, j]} * {x[j]:F6}")) + $") / {augmentedMatrix[i, i]} = {newX:F5}");
+
+                    prevX[i] = x[i];
+                    x[i] = newX;
+                }
+
+                // Convergence check
+                bool isConverged = true;
+                for (int i = 0; i < n; i++)
+                {
+                    if (Math.Abs(x[i] - prevX[i]) > tolerance)
+                    {
+                        isConverged = false;
+                        break;
+                    }
+                }
+
+                steps.AppendLine(); // Add spacing between iterations
+
+                if (isConverged)
+                {
+                    steps.AppendLine("✅ Converged after " + iter + " iterations:");
+                    for (int i = 0; i < n; i++)
+                        steps.AppendLine($"{variableNames[i]} = {x[i]:F6}");
+                    return steps.ToString();
+                }
+            }
+
+            steps.AppendLine("⚠️ Did not converge within the maximum number of iterations.");
+            for (int i = 0; i < n; i++)
+                steps.AppendLine($"{variableNames[i]} ≈ {x[i]:F6} (last approximation)");
+
+            return steps.ToString();
+        }
+
+
+
+
 
         private string MatrixToString(double[,] matrix, int n)
         {
