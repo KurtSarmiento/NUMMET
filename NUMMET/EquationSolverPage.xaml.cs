@@ -45,7 +45,7 @@ namespace NUMMET
                     {
                         TextBox coeffBox = new TextBox
                         {
-                            Width = 50,
+                            Width = 5,
                             Margin = new Thickness(5),
                             PlaceholderText = "0"
                         };
@@ -61,13 +61,13 @@ namespace NUMMET
 
                     row.Children.Add(new TextBlock
                     {
-                        Text = "= ",
+                        Text = "  = ",
                         VerticalAlignment = VerticalAlignment.Center
                     });
 
                     TextBox rhsBox = new TextBox
                     {
-                        Width = 50,
+                        Width = 5,
                         Margin = new Thickness(5),
                         PlaceholderText = "0"
                     };
@@ -94,26 +94,26 @@ namespace NUMMET
             {
                 InitialGuessPanel.Visibility = Visibility.Collapsed;
                 GuessInputFields.Children.Clear();
-                initialGuessTextBoxes.Clear(); // Clear guess input fields
+                initialGuessTextBoxes.Clear();
             }
         }
         private void GenerateGuessInputs(int count)
         {
             GuessInputFields.Children.Clear();
-            initialGuessTextBoxes.Clear(); // Clear any existing textboxes
+            initialGuessTextBoxes.Clear();
             string[] variableNames = { "x", "y", "z", "w", "v" };
 
             for (int i = 0; i < count; i++)
             {
                 var tb = new TextBox
                 {
-                    Width = 200,
+                    Width = 50,
                     Height = 40,
                     Margin = new Thickness(5),
-                    PlaceholderText = $"Initial guess for {variableNames[i]}"
+                    PlaceholderText = $"{variableNames[i]}"
                 };
                 GuessInputFields.Children.Add(tb);
-                initialGuessTextBoxes.Add(tb); // Add the textbox to the list
+                initialGuessTextBoxes.Add(tb);
             }
         }
         private void Button_Solve_Click(object sender, RoutedEventArgs e)
@@ -141,7 +141,6 @@ namespace NUMMET
                             result = SolveUsingGaussJordan(matrix, equationCount);
                             break;
                         case "Gauss-Seidel":
-                            // Retrieve initial guesses from the textboxes
                             double[] initialGuesses = new double[equationCount];
                             for (int i = 0; i < equationCount; i++)
                             {
@@ -185,11 +184,9 @@ namespace NUMMET
         {
             StringBuilder steps = new StringBuilder();
 
-            // 1. Initial Augmented Matrix
-            steps.AppendLine("🔹 Initial Augmented Matrix:");
+            steps.AppendLine("────୨ৎ──── Initial Augmented Matrix: ────୨ৎ────");
             steps.AppendLine(MatrixToString(augmentedMatrix, n));
 
-            // 2. Forward Elimination with Steps
             for (int i = 0; i < n; i++)
             {
                 if (Math.Abs(augmentedMatrix[i, i]) < 1e-10)
@@ -199,7 +196,7 @@ namespace NUMMET
                 {
                     double ratio = augmentedMatrix[j, i] / augmentedMatrix[i, i];
 
-                    steps.AppendLine($"🔁 R{j + 1} = R{j + 1} - ({ratio:F3}) * R{i + 1}");
+                    steps.AppendLine($"🌷 R{j + 1} = R{j + 1} - ({ratio:F3}) * R{i + 1}");
 
                     for (int k = 0; k <= n; k++)
                     {
@@ -207,12 +204,11 @@ namespace NUMMET
                     }
                 }
 
-                steps.AppendLine("🔹 Matrix after elimination step:");
+                steps.AppendLine("────୨ৎ──── Matrix after elimination step: ────୨ৎ────");
                 steps.AppendLine(MatrixToString(augmentedMatrix, n));
             }
 
-            // Normalize diagonal elements to 1
-            steps.AppendLine("🔁 Normalizing Diagonal to 1:");
+            steps.AppendLine("🌷 Normalizing Diagonal to 1:");
             for (int i = 0; i < n; i++)
             {
                 double diag = augmentedMatrix[i, i];
@@ -226,13 +222,11 @@ namespace NUMMET
                     augmentedMatrix[i, j] /= diag;
                 }
             }
-            steps.AppendLine("🔹 Matrix after normalizing diagonal:");
+            steps.AppendLine("────୨ৎ──── Matrix after normalizing diagonal: ────୨ৎ────");
             steps.AppendLine(MatrixToString(augmentedMatrix, n));
 
-
-            // 3. Back Substitution
             double[] x = new double[n];
-            steps.AppendLine("🔙 Back Substitution:");
+            steps.AppendLine("🌸 Back Substitution:");
             for (int i = n - 1; i >= 0; i--)
             {
                 x[i] = augmentedMatrix[i, n];
@@ -251,7 +245,7 @@ namespace NUMMET
         {
             StringBuilder steps = new StringBuilder();
 
-            steps.AppendLine("🔹 Initial Augmented Matrix:");
+            steps.AppendLine("────୨ৎ──── Initial Augmented Matrix: ────୨ৎ────");
             steps.AppendLine(MatrixToString(augmentedMatrix, n));
 
             for (int i = 0; i < n; i++)
@@ -260,20 +254,18 @@ namespace NUMMET
                 if (Math.Abs(pivot) < 1e-10)
                     return $"Math Error: Zero pivot found at row {i + 1}.";
 
-                // Normalize pivot row
-                steps.AppendLine($"🔁 R{i + 1} = R{i + 1} / {pivot:F3}");
+                steps.AppendLine($"🌷 R{i + 1} = R{i + 1} / {pivot:F3}");
                 for (int j = 0; j <= n; j++)
                 {
                     augmentedMatrix[i, j] /= pivot;
                 }
 
-                // Eliminate other rows
                 for (int k = 0; k < n; k++)
                 {
                     if (k == i) continue;
 
                     double factor = augmentedMatrix[k, i];
-                    steps.AppendLine($"🔁 R{k + 1} = R{k + 1} - ({factor:F3}) * R{i + 1}");
+                    steps.AppendLine($"🌷 R{k + 1} = R{k + 1} - ({factor:F3}) * R{i + 1}");
 
                     for (int j = 0; j <= n; j++)
                     {
@@ -281,14 +273,14 @@ namespace NUMMET
                     }
                 }
 
-                steps.AppendLine("🔹 Matrix after step:");
+                steps.AppendLine("────୨ৎ──── Matrix after step: ────୨ৎ────");
                 steps.AppendLine(MatrixToString(augmentedMatrix, n));
             }
 
-            steps.AppendLine("✅ Final Solution:");
+            steps.AppendLine("🌸 Final Solution:");
             for (int i = 0; i < n; i++)
             {
-                steps.AppendLine($"{variableNames[i]} = {augmentedMatrix[i, n]:F6}");
+                steps.AppendLine($"{variableNames[i]} = {augmentedMatrix[i, n]:F4}");
             }
 
             return steps.ToString();
@@ -296,29 +288,29 @@ namespace NUMMET
         private string SolveUsingGaussSeidel(double[,] augmentedMatrix, int n, int maxIterations = 100, double tolerance = 1e-6, double[] initialGuesses = null)
         {
             StringBuilder steps = new StringBuilder();
-            double[] x = initialGuesses ?? new double[n]; // Use provided guesses or default to 0
+            double[] x = initialGuesses ?? new double[n];
             double[] prevX = new double[n];
             int j = 0;
 
-            steps.AppendLine("🔹 Initial Guesses:");
+            steps.AppendLine("────୨ৎ──── Initial Guesses: ────୨ৎ────");
             for (int i = 0; i < n; i++)
             {
-                steps.AppendLine($"{variableNames[i]} = {x[i]:F6}");
+                steps.AppendLine($"{variableNames[i]} = {x[i]:F4}");
             }
             steps.AppendLine("\nFor each variable, the Gauss-Seidel formula is applied:");
             for (int i = 0; i < n; i++)
             {
                 steps.AppendLine($"{variableNames[i]} = (b[{i}] - sum(a[{i},{j}] * x[{j}] for j ≠ {i})) / a[{i},{i}]");
             }
-            steps.AppendLine("\nStarting iterations...\n");
+            steps.AppendLine("\n────୨ৎ──── Starting iterations ────୨ৎ────\n");
 
             for (int iter = 1; iter <= maxIterations; iter++)
             {
-                steps.AppendLine($"🔄 Iteration {iter}:");
+                steps.AppendLine($"🌷 Iteration {iter}:");
 
                 for (int i = 0; i < n; i++)
                 {
-                    double sum = augmentedMatrix[i, n]; // RHS
+                    double sum = augmentedMatrix[i, n];
                     for (j = 0; j < n; j++)
                     {
                         if (i != j)
@@ -329,7 +321,7 @@ namespace NUMMET
 
                     double newX = sum / augmentedMatrix[i, i];
 
-                    steps.AppendLine($"{variableNames[i]} = ({augmentedMatrix[i, n]} - " + string.Join(" - ", Enumerable.Range(0, n).Where(k => k != i).Select(k => $"{augmentedMatrix[i, k]} * {x[k]:F6}")) + $") / {augmentedMatrix[i, i]} = {newX:F5}");
+                    steps.AppendLine($"{variableNames[i]} = ({augmentedMatrix[i, n]} - " + string.Join(" - ", Enumerable.Range(0, n).Where(k => k != i).Select(k => $"{augmentedMatrix[i, k]} * {x[k]:F4}")) + $") / {augmentedMatrix[i, i]} = {newX:F5}");
 
                     prevX[i] = x[i];
                     x[i] = newX;
@@ -345,20 +337,20 @@ namespace NUMMET
                     }
                 }
 
-                steps.AppendLine(); // Add spacing between iterations
+                steps.AppendLine();
 
                 if (isConverged)
                 {
                     steps.AppendLine("✅ Converged after " + iter + " iterations:");
                     for (int i = 0; i < n; i++)
-                        steps.AppendLine($"{variableNames[i]} = {x[i]:F6}");
+                        steps.AppendLine($"{variableNames[i]} = {x[i]:F4}");
                     return steps.ToString();
                 }
             }
 
-            steps.AppendLine("⚠️ Did not converge within the maximum number of iterations.");
+            steps.AppendLine("────୨ৎ──── Did not converge within the maximum number of iterations ────୨ৎ────");
             for (int i = 0; i < n; i++)
-                steps.AppendLine($"{variableNames[i]} ≈ {x[i]:F6} (last approximation)");
+                steps.AppendLine($"{variableNames[i]} ≈ {x[i]:F4} (last approximation)");
 
             return steps.ToString();
         }
