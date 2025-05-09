@@ -185,7 +185,7 @@ namespace NUMMET
             {
                 TextBlock_Solution.Inlines.Add(new Run { Text = line });
                 TextBlock_Solution.Inlines.Add(new LineBreak());
-                await Task.Delay(50); // Adjust the delay (in milliseconds) to control the speed
+                await Task.Delay(100);
             }
         }
 
