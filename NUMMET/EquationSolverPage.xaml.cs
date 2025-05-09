@@ -12,7 +12,9 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Microsoft.UI.Xaml.Documents;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace NUMMET
 {
@@ -21,12 +23,14 @@ namespace NUMMET
         private int equationCount = 0;
         private List<List<TextBox>> coefficientTextBoxes = new List<List<TextBox>>();
         private List<TextBox> rhsTextBoxes = new List<TextBox>();
-        private List<TextBox> initialGuessTextBoxes = new List<TextBox>(); // To store initial guess input fields
+        private List<TextBox> initialGuessTextBoxes = new List<TextBox>();
         private readonly string[] variableNames = { "x", "y", "z", "w", "v" };
+
         public EquationSolverPage()
         {
             this.InitializeComponent();
         }
+
         private void ComboBox_EquationCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             EquationInputPanel.Children.Clear();
@@ -45,7 +49,7 @@ namespace NUMMET
                     {
                         TextBox coeffBox = new TextBox
                         {
-                            Width = 5,
+                            Width = 50,
                             Margin = new Thickness(5),
                             PlaceholderText = "0"
                         };
@@ -61,13 +65,13 @@ namespace NUMMET
 
                     row.Children.Add(new TextBlock
                     {
-                        Text = "  = ",
+                        Text = "= ",
                         VerticalAlignment = VerticalAlignment.Center
                     });
 
                     TextBox rhsBox = new TextBox
                     {
-                        Width = 5,
+                        Width = 50,
                         Margin = new Thickness(5),
                         PlaceholderText = "0"
                     };
@@ -80,6 +84,7 @@ namespace NUMMET
             }
             UpdateGuessVisibility();
         }
+
         private void UpdateGuessVisibility()
         {
             var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
@@ -97,6 +102,7 @@ namespace NUMMET
                 initialGuessTextBoxes.Clear();
             }
         }
+
         private void GenerateGuessInputs(int count)
         {
             GuessInputFields.Children.Clear();
@@ -116,7 +122,8 @@ namespace NUMMET
                 initialGuessTextBoxes.Add(tb);
             }
         }
-        private void Button_Solve_Click(object sender, RoutedEventArgs e)
+
+        private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
             double[,] matrix = new double[equationCount, equationCount + 1];
 
@@ -162,13 +169,26 @@ namespace NUMMET
                     }
                 }
 
-                TextBlock_Solution.Text = result;
+                await TypeOutSolution(result); // Call the async method to display the solution
             }
             catch (Exception ex)
             {
                 TextBlock_Solution.Text = "Error: " + ex.Message;
             }
         }
+
+        private async Task TypeOutSolution(string output)
+        {
+            TextBlock_Solution.Inlines.Clear();
+
+            foreach (string line in output.Split('\n'))
+            {
+                TextBlock_Solution.Inlines.Add(new Run { Text = line });
+                TextBlock_Solution.Inlines.Add(new LineBreak());
+                await Task.Delay(50); // Adjust the delay (in milliseconds) to control the speed
+            }
+        }
+
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
             foreach (var row in coefficientTextBoxes)
@@ -178,8 +198,12 @@ namespace NUMMET
             foreach (var tb in rhsTextBoxes)
                 tb.Text = "";
 
+            foreach (var tb in initialGuessTextBoxes)
+                tb.Text = "";
+
             TextBlock_Solution.Text = "";
         }
+
         private string SolveUsingGaussElimination(double[,] augmentedMatrix, int n)
         {
             StringBuilder steps = new StringBuilder();
@@ -236,11 +260,12 @@ namespace NUMMET
                 }
                 x[i] /= augmentedMatrix[i, i];
 
-                steps.AppendLine($"{variableNames[i]} = {x[i]:F6}");
+                steps.AppendLine($"{variableNames[i]} = {x[i]:F4}");
             }
 
             return steps.ToString();
         }
+
         private string SolveUsingGaussJordan(double[,] augmentedMatrix, int n)
         {
             StringBuilder steps = new StringBuilder();
@@ -285,6 +310,7 @@ namespace NUMMET
 
             return steps.ToString();
         }
+
         private string SolveUsingGaussSeidel(double[,] augmentedMatrix, int n, int maxIterations = 100, double tolerance = 1e-6, double[] initialGuesses = null)
         {
             StringBuilder steps = new StringBuilder();
@@ -354,6 +380,7 @@ namespace NUMMET
 
             return steps.ToString();
         }
+
         private string MatrixToString(double[,] matrix, int n)
         {
             StringBuilder sb = new StringBuilder();
@@ -369,11 +396,13 @@ namespace NUMMET
             }
             return sb.ToString();
         }
+
         private void ComboBox_Method_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             TextBlock_Solution.Text = "";
             UpdateGuessVisibility();
         }
+
         private void Button_Back_Click(object sender, RoutedEventArgs e)
         {
             Frame.GoBack();

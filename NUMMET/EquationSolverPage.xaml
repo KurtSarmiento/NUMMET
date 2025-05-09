@@ -49,7 +49,7 @@
                 <ScrollViewer Width="650" Height="400" VerticalScrollBarVisibility="Auto">
                     <TextBlock x:Name="TextBlock_Solution" TextWrapping="Wrap" FontFamily="Consolas" FontSize="14" IsTextSelectionEnabled="True"/>
                 </ScrollViewer>
-                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray" Margin="10,0,10,10" Text="Enter coefficients only. Variables are placed automatically (x, y, z, ...)."/>
+                <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray" Margin="10,10,10,10" Text="Enter coefficients only. Variables are placed automatically (x, y, z, ...)."/>
             </StackPanel>
         </Grid>
     </ScrollViewer>
