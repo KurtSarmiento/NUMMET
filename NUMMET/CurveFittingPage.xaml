@@ -6,6 +6,7 @@
     xmlns:local="using:NUMMET"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scottplot="using:ScottPlot.WinUI"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -58,9 +59,12 @@
 
             <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="70">
                 <TextBlock Text="Solution:" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,10"/>
-                <ScrollViewer Width="650" Height="400" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Width="650" Height="200" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
                     <TextBlock x:Name="TextBlock_Solution" TextWrapping="Wrap" FontFamily="Consolas" FontSize="14" IsTextSelectionEnabled="True"/>
                 </ScrollViewer>
+                
+                <TextBlock Text="Plot:" FontSize="20" FontWeight="SemiBold" Margin="0,20,0,10"/>
+                <scottplot:WinUIPlot x:Name="PlotView" Width="650" Height="300"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>

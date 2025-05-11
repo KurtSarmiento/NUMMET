@@ -15,6 +15,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using ScottPlot.WinUI;
+using static ScottPlot.Drawing;
+using ScottPlot.Colormaps;
+using ScottPlot;
+
+
+
 
 namespace NUMMET
 {
@@ -62,7 +69,7 @@ namespace NUMMET
                     // Create a horizontal stack panel for each point
                     StackPanel pointRow = new StackPanel
                     {
-                        Orientation = Orientation.Horizontal,
+                        Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal, // Fully qualified
                         Margin = new Thickness(5)
                     };
 
@@ -71,7 +78,7 @@ namespace NUMMET
                     {
                         Text = $"Point {i + 1}:",
                         Width = 70,
-                        VerticalAlignment = VerticalAlignment.Center
+                        VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center // Fully qualified
                     };
 
                     // X input
@@ -91,15 +98,17 @@ namespace NUMMET
                     };
 
                     pointRow.Children.Add(label);
-                    pointRow.Children.Add(new TextBlock { Text = "x:", VerticalAlignment = VerticalAlignment.Center });
+                    pointRow.Children.Add(new TextBlock { Text = "x:", VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center }); // Fully qualified
                     pointRow.Children.Add(xInput);
-                    pointRow.Children.Add(new TextBlock { Text = " y:", VerticalAlignment = VerticalAlignment.Center });
+                    pointRow.Children.Add(new TextBlock { Text = " y:", VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Center }); // Fully qualified
                     pointRow.Children.Add(yInput);
 
                     PointInputPanel.Children.Add(pointRow);
                 }
             }
         }
+
+
 
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
@@ -128,6 +137,9 @@ namespace NUMMET
                 string result = SolveLinearRegression(xValues, yValues);
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
+
+                // Plot the points and regression line
+                PlotLinearRegression(xValues, yValues);
             }
             else
             {
@@ -187,7 +199,44 @@ namespace NUMMET
 
             return sb.ToString();
         }
+        private void PlotLinearRegression(List<double> xValues, List<double> yValues)
+        {
+            var plt = PlotView.Plot;
+            plt.Clear();
 
+            // Plot the points
+            double[] xs = xValues.ToArray();
+            double[] ys = yValues.ToArray();
+            var scatterPoints = plt.Add.Scatter(xs, ys);
+            scatterPoints.MarkerSize = 5;
+            scatterPoints.Label = "Points"; // Set the label property
+
+            // Calculate the regression line
+            int n = xValues.Count;
+            double sumX = xValues.Sum();
+            double sumY = yValues.Sum();
+            double sumXY = xValues.Zip(yValues, (x, y) => x * y).Sum();
+            double sumX2 = xValues.Sum(x => x * x);
+
+            double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            double intercept = (sumY - slope * sumX) / n;
+
+            // Generate points for the regression line
+            double[] lineXs = { xs.Min(), xs.Max() };
+            double[] lineYs = lineXs.Select(x => slope * x + intercept).ToArray();
+
+            // Plot the regression line
+            var scatterLine = plt.Add.Scatter(lineXs, lineYs);
+            scatterLine.LineWidth = 2;
+            scatterLine.Label = "Regression Line"; // Set the label property
+
+            // Enable and configure the legend
+            plt.Legend.IsVisible = true; // Enable the legend
+            plt.Legend.Location = ScottPlot.Alignment.UpperRight; // Use ScottPlot's Alignment enum
+
+            // Refresh the plot
+            PlotView.Refresh();
+        }
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
@@ -196,6 +245,10 @@ namespace NUMMET
 
             ComboBox_Method.SelectedIndex = -1;
             ComboBox_PointCount.SelectedIndex = -1;
+
+            // Clear the plot
+            PlotView.Plot.Clear();
+            PlotView.Refresh();
         }
 
         private void Button_Back_Click(object sender, RoutedEventArgs e)
