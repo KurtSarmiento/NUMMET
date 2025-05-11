@@ -53,6 +53,9 @@ namespace NUMMET
             // Clear previous entries
             PointInputPanel.Children.Clear();
             TextBlock_Solution.Text = "";
+            PlotView.Visibility = Visibility.Collapsed; // Hide when point count changes
+            PlotView.Plot.Clear();
+            PlotView.Refresh();
         }
 
         private void ComboBox_PointCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -106,6 +109,9 @@ namespace NUMMET
                     PointInputPanel.Children.Add(pointRow);
                 }
             }
+            PlotView.Visibility = Visibility.Collapsed; // Hide when method changes
+            PlotView.Plot.Clear();
+            PlotView.Refresh();
         }
 
 
@@ -130,6 +136,9 @@ namespace NUMMET
                     else
                     {
                         TextBlock_Solution.Text = "Please ensure all x and y inputs are valid numbers.";
+                        PlotView.Visibility = Visibility.Collapsed; // Hide on error
+                        PlotView.Plot.Clear();
+                        PlotView.Refresh();
                         return;
                     }
                 }
@@ -140,10 +149,14 @@ namespace NUMMET
 
                 // Plot the points and regression line
                 PlotLinearRegression(xValues, yValues);
+                PlotView.Visibility = Visibility.Visible;
             }
             else
             {
                 TextBlock_Solution.Text = "Please select 'Linear Regression' to use this function.";
+                PlotView.Visibility = Visibility.Collapsed; // Ensure it's hidden for other methods
+                PlotView.Plot.Clear();
+                PlotView.Refresh();
             }
         }
 
@@ -203,12 +216,20 @@ namespace NUMMET
         {
             var plt = PlotView.Plot;
             plt.Clear();
+            PlotView.Plot.FigureBackground.Color = Color.FromHex("#202020");
+            PlotView.Plot.DataBackground.Color = Color.FromHex("#202020");
+            PlotView.Plot.Axes.Color(Color.FromHex("#d7d7d7"));
+            PlotView.Plot.Grid.MajorLineColor = Color.FromHex("#404040");
+            PlotView.Plot.Legend.BackgroundColor = Color.FromHex("#404040");
+            PlotView.Plot.Legend.FontColor = Color.FromHex("#fba2a1");
+            PlotView.Plot.Legend.OutlineColor = Color.FromHex("#fba2a1");
 
             // Plot the points
             double[] xs = xValues.ToArray();
             double[] ys = yValues.ToArray();
             var scatterPoints = plt.Add.Scatter(xs, ys);
             scatterPoints.MarkerSize = 5;
+            scatterPoints.Color = Color.FromHex("#808080");
             scatterPoints.Label = "Points"; // Set the label property
 
             // Calculate the regression line
@@ -229,6 +250,7 @@ namespace NUMMET
             var scatterLine = plt.Add.Scatter(lineXs, lineYs);
             scatterLine.LineWidth = 2;
             scatterLine.Label = "Regression Line"; // Set the label property
+            scatterLine.Color = Color.FromHex("#fba2a1");
 
             // Enable and configure the legend
             plt.Legend.IsVisible = true; // Enable the legend
@@ -242,13 +264,12 @@ namespace NUMMET
         {
             PointInputPanel.Children.Clear();
             TextBlock_Solution.Text = "";
+            PlotView.Visibility = Visibility.Collapsed; // Hide on clear
+            PlotView.Plot.Clear();
+            PlotView.Refresh();
 
             ComboBox_Method.SelectedIndex = -1;
             ComboBox_PointCount.SelectedIndex = -1;
-
-            // Clear the plot
-            PlotView.Plot.Clear();
-            PlotView.Refresh();
         }
 
         private void Button_Back_Click(object sender, RoutedEventArgs e)
