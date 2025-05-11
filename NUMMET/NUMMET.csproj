@@ -15,6 +15,7 @@
   <ItemGroup>
     <None Remove="Assets\banner.png" />
     <None Remove="Assets\ribbon.png" />
+    <None Remove="CurveFittingPage.xaml" />
     <None Remove="EquationSolverPage.xaml" />
     <None Remove="MainPage.xaml" />
     <None Remove="MODULE1\Bisection.xaml" />
@@ -55,6 +56,11 @@
     <Content Update="Assets\ribbon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="CurveFittingPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="EquationSolverPage.xaml">

@@ -31,5 +31,10 @@ namespace NUMMET
         {
             Frame.Navigate(typeof(EquationSolverPage));
         }
+
+        private void Button_CurveFitting_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(CurveFittingPage));
+        }
     }
 }
