@@ -248,6 +248,7 @@ namespace NUMMET
 
             return sb.ToString();
         }
+
         private void PlotLinearRegression(List<double> xValues, List<double> yValues)
         {
             var plt = PlotView.Plot;
@@ -295,6 +296,7 @@ namespace NUMMET
             // Refresh the plot
             PlotView.Refresh();
         }
+
         private string SolvePolynomialRegression(List<double> xValues, List<double> yValues, int degree, out double[] coefficients)
         {
             // Input validation:
@@ -321,23 +323,45 @@ namespace NUMMET
                 int n = xValues.Count;
                 int m = degree + 1; // Number of coefficients
 
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Polynomial Regression (Degree {degree})");
+                sb.AppendLine("\n================================================================");
+                sb.AppendLine("Step 1: Construct the Vandermonde Matrix A");
+                sb.AppendLine("================================================================");
+
                 // 1. Construct the Vandermonde matrix A (as a 2D array).
                 double[,] A = new double[n, m];
+                sb.Append("A = \n");
                 for (int i = 0; i < n; i++)
                 {
+                    sb.Append("[ ");
                     for (int j = 0; j < m; j++)
                     {
                         A[i, j] = Math.Pow(xValues[i], j);
+                        sb.Append($"{A[i, j]:F4}, ");
                     }
+                    sb.AppendLine("]");
                 }
 
                 // 2. Create the vector y (as a double array).
                 double[] y = yValues.ToArray();
+                sb.AppendLine("\n================================================================");
+                sb.AppendLine("Step 2: Create the vector y");
+                sb.AppendLine("================================================================");
+                sb.Append("y = [ ");
+                for (int i = 0; i < n; i++)
+                {
+                    sb.Append($"{y[i]:F4}, ");
+                }
+                sb.AppendLine("]");
 
                 // 3. Calculate A^T * A  and A^T * y manually.
                 double[,] AtA = new double[m, m];
                 double[] Aty = new double[m];
 
+                sb.AppendLine("\n================================================================");
+                sb.AppendLine("Step 3: Calculate AᵀA (A Transpose times A)");
+                sb.AppendLine("================================================================");
                 // Calculate A^T * A
                 for (int i = 0; i < m; i++)
                 {
@@ -348,9 +372,24 @@ namespace NUMMET
                         {
                             AtA[i, j] += A[k, i] * A[k, j];
                         }
+                        // sb.Append($"{AtA[i, j]:F4}\t");
                     }
+                    // sb.AppendLine();
+                }
+                sb.Append("AᵀA = \n");
+                for (int i = 0; i < m; i++)
+                {
+                    sb.Append("[ ");
+                    for (int j = 0; j < m; j++)
+                    {
+                        sb.Append($"{AtA[i, j]:F4}, ");
+                    }
+                    sb.AppendLine("]");
                 }
 
+                sb.AppendLine("\n================================================================");
+                sb.AppendLine("Step 4: Calculate Aᵀy (A Transpose times y)");
+                sb.AppendLine("================================================================");
                 // Calculate A^T * y
                 for (int i = 0; i < m; i++)
                 {
@@ -359,7 +398,15 @@ namespace NUMMET
                     {
                         Aty[i] += A[k, i] * y[k];
                     }
+                    //sb.Append($"{Aty[i]:F4}\t");
                 }
+                //sb.AppendLine();
+                sb.Append("Aᵀy = [ ");
+                for (int i = 0; i < m; i++)
+                {
+                    sb.Append($"{Aty[i]:F4}, ");
+                }
+                sb.AppendLine("]");
 
                 // 4. Solve the system of linear equations (AtA * c = Aty) using Gaussian elimination.
                 coefficients = SolveLinearSystem(AtA, Aty);
@@ -368,14 +415,33 @@ namespace NUMMET
                     return "Error: Unable to solve the system of equations.  Matrix is singular."; // Error from SolveLinearSystem
                 }
 
-                // 5. Construct a user-friendly message.
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Polynomial Regression (Degree {degree})");
+                sb.AppendLine("\n================================================================");
+                sb.AppendLine("Step 5: Solve for Coefficients using Gaussian Elimination");
+                sb.AppendLine("================================================================");
                 sb.AppendLine("Coefficients:");
                 for (int i = 0; i <= degree; i++)
                 {
                     sb.AppendLine($"c[{i}] = {coefficients[i]:F4}");
                 }
+
+                string equation = "y = ";
+                for (int i = 0; i <= degree; i++)
+                {
+                    if (i == 0)
+                    {
+                        equation += $"{coefficients[i]:F4}";
+                    }
+                    else if (i == 1)
+                    {
+                        equation += $" + {coefficients[i]:F4}x";
+                    }
+                    else
+                    {
+                        equation += $" + {coefficients[i]:F4}x^{i}";
+                    }
+                }
+                sb.AppendLine($"\n📈 Final Polynomial Regression Equation: {equation}");
+
                 return sb.ToString();
             }
             catch (Exception ex)
@@ -384,6 +450,7 @@ namespace NUMMET
                 return "An error occurred during calculation: " + ex.Message;
             }
         }
+
 
         private double[] SolveLinearSystem(double[,] matrix, double[] rightSide)
         {
@@ -459,15 +526,22 @@ namespace NUMMET
         {
             var plt = PlotView.Plot;
             plt.Clear();
+            PlotView.Plot.FigureBackground.Color = Color.FromHex("#202020");
+            PlotView.Plot.DataBackground.Color = Color.FromHex("#202020");
+            PlotView.Plot.Axes.Color(Color.FromHex("#d7d7d7"));
+            PlotView.Plot.Grid.MajorLineColor = Color.FromHex("#404040");
+            PlotView.Plot.Legend.BackgroundColor = Color.FromHex("#404040");
+            PlotView.Plot.Legend.FontColor = Color.FromHex("#fba2a1");
+            PlotView.Plot.Legend.OutlineColor = Color.FromHex("#fba2a1");
             // Apply your desired plot styling (background, axes, etc.) here
 
             // Plot the original points
             double[] xs = xValues.ToArray();
             double[] ys = yValues.ToArray();
             var scatterPlot = plt.Add.Scatter(xs, ys); // Use AddScatter
+            scatterPlot.Color = Color.FromHex("#808080");
             scatterPlot.MarkerSize = 5;
             scatterPlot.Label = "Data Points";
-            scatterPlot.Color = ScottPlot.Color.FromHex("#aeeeee"); // Use ScottPlot.Color
 
             // Generate points for the polynomial curve
             double minX = xs.Min();
@@ -490,6 +564,7 @@ namespace NUMMET
             // Plot the polynomial curve
             var linePlot = plt.Add.Scatter(curveXs.ToArray(), curveYs.ToArray()); // Use AddLine
             linePlot.LineWidth = 2;
+            linePlot.Color = Color.FromHex("#fba2a1");
             linePlot.Color = ScottPlot.Color.FromHex("#f08080"); // Use ScottPlot.Color
             linePlot.Label = $"Polynomial (Degree {coefficients.Length - 1})";
 
@@ -498,8 +573,6 @@ namespace NUMMET
 
             PlotView.Refresh();
         }
-
-
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
