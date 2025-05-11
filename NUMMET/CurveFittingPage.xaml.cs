@@ -1,7 +1,8 @@
-using Microsoft.UI.Xaml;
+﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
@@ -10,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
@@ -98,7 +101,7 @@ namespace NUMMET
             }
         }
 
-        private void Button_Solve_Click(object sender, RoutedEventArgs e)
+        private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
             if ((ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString() == "Linear Regression")
             {
@@ -122,7 +125,8 @@ namespace NUMMET
                     }
                 }
 
-                string result = SolveUsingLinearRegression(xValues, yValues);
+                string result = SolveLinearRegression(xValues, yValues);
+                await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
             }
             else
@@ -131,32 +135,59 @@ namespace NUMMET
             }
         }
 
-        private string SolveUsingLinearRegression(List<double> xValues, List<double> yValues)
+        private async Task TypeOutSolution(string output)
+        {
+            TextBlock_Solution.Inlines.Clear();
+
+            foreach (string line in output.Split('\n'))
+            {
+                TextBlock_Solution.Inlines.Add(new Run { Text = line });
+                TextBlock_Solution.Inlines.Add(new LineBreak());
+                await Task.Delay(100);
+            }
+        }
+
+        private string SolveLinearRegression(List<double> xValues, List<double> yValues)
         {
             int n = xValues.Count;
 
-            if (n < 2)
-                return "At least 2 data points are required.";
-
             double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Step 1: Construct Table of Values");
+            sb.AppendLine("x\t\ty\t\tx*y\t\tx^2");
 
             for (int i = 0; i < n; i++)
             {
-                sumX += xValues[i];
-                sumY += yValues[i];
-                sumXY += xValues[i] * yValues[i];
-                sumX2 += xValues[i] * xValues[i];
+                double x = xValues[i];
+                double y = yValues[i];
+                double xy = x * y;
+                double x2 = x * x;
+
+                sumX += x;
+                sumY += y;
+                sumXY += xy;
+                sumX2 += x2;
+
+                sb.AppendLine($"{x:F4}\t\t{y:F4}\t\t{xy:F4}\t\t{x2:F4}");
             }
 
-            double denominator = n * sumX2 - sumX * sumX;
-            if (Math.Abs(denominator) < 1e-10)
-                return "Cannot compute linear regression: denominator is zero.";
+            sb.AppendLine("\nStep 2: Calculate Summations");
+            sb.AppendLine($"Σx = {sumX:F4}, Σy = {sumY:F4}, Σxy = {sumXY:F4}, Σx² = {sumX2:F4}");
 
-            double a = (n * sumXY - sumX * sumY) / denominator;
-            double b = (sumY * sumX2 - sumX * sumXY) / denominator;
+            double m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            double b = (sumY - m * sumX) / n;
 
-            return $"y = {a:F4}x + {b:F4}";
+            sb.AppendLine("\nStep 3: Compute the Slope (m) and Intercept (b)");
+            sb.AppendLine($"m = (nΣxy - ΣxΣy) / (nΣx² - (Σx)²)");
+            sb.AppendLine($"m = ({n} * {sumXY:F4} - {sumX:F4} * {sumY:F4}) / ({n} * {sumX2:F4} - {sumX:F4}²) = {m:F4}");
+            sb.AppendLine($"b = (Σy - mΣx) / n = ({sumY:F4} - {m:F4} * {sumX:F4}) / {n} = {b:F4}");
+
+            sb.AppendLine($"\n📈 Final Linear Regression Equation: y = {m:F4}x + {b:F4}");
+
+            return sb.ToString();
         }
+
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
