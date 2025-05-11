@@ -47,19 +47,22 @@ namespace NUMMET
                 ComboBox_PointCount.Visibility = Visibility.Collapsed;
             }
 
+            // Show/Hide the degree input
+            if (selectedMethod == "Polynomial Regression")
+            {
+                DegreeInputPanel.Visibility = Visibility.Visible; // Make DegreeInputPanel visible
+            }
+            else
+            {
+                DegreeInputPanel.Visibility = Visibility.Collapsed; // Hide DegreeInputPanel
+            }
+
             // Clear previous entries
             PointInputPanel.Children.Clear();
             TextBlock_Solution.Text = "";
             PlotView.Visibility = Visibility.Collapsed;
             PlotView.Plot.Clear();
             PlotView.Refresh();
-
-            // Handle method-specific actions
-            if (selectedMethod == "Polynomial Regression")
-            {
-                TextBlock_Solution.Text = "You have selected Polynomial Curve Fitting. Please input your data points and click 'Submit'.";
-                // If you added a degree input, you might make it visible here.
-            }
         }
 
         private void ComboBox_PointCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -148,14 +151,14 @@ namespace NUMMET
                     }
                 }
 
-                string result = SolveLinearRegression(xValues, yValues);
+                string result = SolveLinearRegression(xValues, yValues); // Corrected call
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
                 PlotLinearRegression(xValues, yValues);
                 PlotView.Visibility = Visibility.Visible;
             }
             else if (selectedMethod == "Polynomial Regression")
-            {
+            {   
                 List<double> xValues = new List<double>();
                 List<double> yValues = new List<double>();
 
@@ -179,8 +182,15 @@ namespace NUMMET
                     }
                 }
 
-                // Assume a degree for the polynomial (e.g., 2 for quadratic)
-                int polynomialDegree = 2;
+                // Get the degree from the TextBox
+                if (!int.TryParse(TextBox_Degree.Text, out int polynomialDegree))
+                {
+                    TextBlock_Solution.Text = "Please enter a valid degree for the polynomial.";
+                    PlotView.Visibility = Visibility.Collapsed;
+                    PlotView.Plot.Clear();
+                    PlotView.Refresh();
+                    return;
+                }
                 string result = SolvePolynomialRegression(xValues, yValues, polynomialDegree, out double[] coefficients);
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
@@ -215,7 +225,7 @@ namespace NUMMET
             double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Step 1: Construct Table of Values");
+            sb.AppendLine("────୨ৎ──── Construct Table of Values ────୨ৎ────");
             sb.AppendLine("x\t\ty\t\tx*y\t\tx^2");
 
             for (int i = 0; i < n; i++)
@@ -233,13 +243,13 @@ namespace NUMMET
                 sb.AppendLine($"{x:F4}\t\t{y:F4}\t\t{xy:F4}\t\t{x2:F4}");
             }
 
-            sb.AppendLine("\nStep 2: Calculate Summations");
+            sb.AppendLine("\n────୨ৎ──── Calculate Summations ────୨ৎ────");
             sb.AppendLine($"Σx = {sumX:F4}, Σy = {sumY:F4}, Σxy = {sumXY:F4}, Σx² = {sumX2:F4}");
 
             double m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
             double b = (sumY - m * sumX) / n;
 
-            sb.AppendLine("\nStep 3: Compute the Slope (m) and Intercept (b)");
+            sb.AppendLine("\n────୨ৎ──── Compute the Slope (m) and Intercept (b) ────୨ৎ────");
             sb.AppendLine($"m = (nΣxy - ΣxΣy) / (nΣx² - (Σx)²)");
             sb.AppendLine($"m = ({n} * {sumXY:F4} - {sumX:F4} * {sumY:F4}) / ({n} * {sumX2:F4} - {sumX:F4}²) = {m:F4}");
             sb.AppendLine($"b = (Σy - mΣx) / n = ({sumY:F4} - {m:F4} * {sumX:F4}) / {n} = {b:F4}");
@@ -253,6 +263,7 @@ namespace NUMMET
         {
             var plt = PlotView.Plot;
             plt.Clear();
+            // Apply your desired plot styling (background, axes, etc.) here
             PlotView.Plot.FigureBackground.Color = Color.FromHex("#202020");
             PlotView.Plot.DataBackground.Color = Color.FromHex("#202020");
             PlotView.Plot.Axes.Color(Color.FromHex("#d7d7d7"));
@@ -266,7 +277,7 @@ namespace NUMMET
             double[] ys = yValues.ToArray();
             var scatterPoints = plt.Add.Scatter(xs, ys);
             scatterPoints.MarkerSize = 5;
-            scatterPoints.Color = Color.FromHex("#808080");
+            scatterPoints.Color = ScottPlot.Color.FromHex("#808080");
             scatterPoints.Label = "Points"; // Set the label property
 
             // Calculate the regression line
@@ -284,10 +295,10 @@ namespace NUMMET
             double[] lineYs = lineXs.Select(x => slope * x + intercept).ToArray();
 
             // Plot the regression line
-            var scatterLine = plt.Add.Scatter(lineXs, lineYs);
-            scatterLine.LineWidth = 2;
-            scatterLine.Label = "Regression Line"; // Set the label property
-            scatterLine.Color = Color.FromHex("#fba2a1");
+            var linePlot = plt.Add.Scatter(lineXs, lineYs);
+            linePlot.LineWidth = 2;
+            linePlot.Label = "Regression Line"; // Set the label property
+            linePlot.Color = ScottPlot.Color.FromHex("#fba2a1");
 
             // Enable and configure the legend
             plt.Legend.IsVisible = true; // Enable the legend
@@ -324,10 +335,8 @@ namespace NUMMET
                 int m = degree + 1; // Number of coefficients
 
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Polynomial Regression (Degree {degree})");
-                sb.AppendLine("\n================================================================");
-                sb.AppendLine("Step 1: Construct the Vandermonde Matrix A");
-                sb.AppendLine("================================================================");
+                sb.AppendLine($"Polynomial Regression (Degree {degree})\n");
+                sb.AppendLine("────୨ৎ──── Construct the Vandermonde Matrix A ────୨ৎ────");
 
                 // 1. Construct the Vandermonde matrix A (as a 2D array).
                 double[,] A = new double[n, m];
@@ -345,9 +354,8 @@ namespace NUMMET
 
                 // 2. Create the vector y (as a double array).
                 double[] y = yValues.ToArray();
-                sb.AppendLine("\n================================================================");
-                sb.AppendLine("Step 2: Create the vector y");
-                sb.AppendLine("================================================================");
+                sb.AppendLine("\n");
+                sb.AppendLine("────୨ৎ──── Create the vector y ────୨ৎ────");
                 sb.Append("y = [ ");
                 for (int i = 0; i < n; i++)
                 {
@@ -359,9 +367,8 @@ namespace NUMMET
                 double[,] AtA = new double[m, m];
                 double[] Aty = new double[m];
 
-                sb.AppendLine("\n================================================================");
-                sb.AppendLine("Step 3: Calculate AᵀA (A Transpose times A)");
-                sb.AppendLine("================================================================");
+                sb.AppendLine("\n");
+                sb.AppendLine("────୨ৎ──── Calculate AᵀA (A Transpose times A) ────୨ৎ────");
                 // Calculate A^T * A
                 for (int i = 0; i < m; i++)
                 {
@@ -387,9 +394,8 @@ namespace NUMMET
                     sb.AppendLine("]");
                 }
 
-                sb.AppendLine("\n================================================================");
-                sb.AppendLine("Step 4: Calculate Aᵀy (A Transpose times y)");
-                sb.AppendLine("================================================================");
+                sb.AppendLine("\n");
+                sb.AppendLine("────୨ৎ──── Calculate Aᵀy (A Transpose times y) ────୨ৎ────");
                 // Calculate A^T * y
                 for (int i = 0; i < m; i++)
                 {
@@ -415,9 +421,8 @@ namespace NUMMET
                     return "Error: Unable to solve the system of equations.  Matrix is singular."; // Error from SolveLinearSystem
                 }
 
-                sb.AppendLine("\n================================================================");
-                sb.AppendLine("Step 5: Solve for Coefficients using Gaussian Elimination");
-                sb.AppendLine("================================================================");
+                sb.AppendLine("\n");
+                sb.AppendLine("────୨ৎ──── Solve for Coefficients using Gaussian Elimination ────୨ৎ────");
                 sb.AppendLine("Coefficients:");
                 for (int i = 0; i <= degree; i++)
                 {
@@ -450,7 +455,6 @@ namespace NUMMET
                 return "An error occurred during calculation: " + ex.Message;
             }
         }
-
 
         private double[] SolveLinearSystem(double[,] matrix, double[] rightSide)
         {
@@ -533,15 +537,14 @@ namespace NUMMET
             PlotView.Plot.Legend.BackgroundColor = Color.FromHex("#404040");
             PlotView.Plot.Legend.FontColor = Color.FromHex("#fba2a1");
             PlotView.Plot.Legend.OutlineColor = Color.FromHex("#fba2a1");
-            // Apply your desired plot styling (background, axes, etc.) here
 
             // Plot the original points
             double[] xs = xValues.ToArray();
             double[] ys = yValues.ToArray();
             var scatterPlot = plt.Add.Scatter(xs, ys); // Use AddScatter
-            scatterPlot.Color = Color.FromHex("#808080");
             scatterPlot.MarkerSize = 5;
             scatterPlot.Label = "Data Points";
+            scatterPlot.Color = ScottPlot.Color.FromHex("#808080"); // Use ScottPlot.Color
 
             // Generate points for the polynomial curve
             double minX = xs.Min();
@@ -564,7 +567,6 @@ namespace NUMMET
             // Plot the polynomial curve
             var linePlot = plt.Add.Scatter(curveXs.ToArray(), curveYs.ToArray()); // Use AddLine
             linePlot.LineWidth = 2;
-            linePlot.Color = Color.FromHex("#fba2a1");
             linePlot.Color = ScottPlot.Color.FromHex("#f08080"); // Use ScottPlot.Color
             linePlot.Label = $"Polynomial (Degree {coefficients.Length - 1})";
 
@@ -584,6 +586,8 @@ namespace NUMMET
 
             ComboBox_Method.SelectedIndex = -1;
             ComboBox_PointCount.SelectedIndex = -1;
+            TextBox_Degree.Text = ""; // Clear the degree input
+            DegreeInputPanel.Visibility = Visibility.Collapsed;
         }
 
         private void Button_Back_Click(object sender, RoutedEventArgs e)
@@ -592,3 +596,4 @@ namespace NUMMET
         }
     }
 }
+
