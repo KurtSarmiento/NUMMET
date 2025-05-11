@@ -169,7 +169,7 @@ namespace NUMMET
                     }
                 }
 
-                await TypeOutSolution(result); // Call the async method to display the solution
+                await TypeOutSolution(result);
             }
             catch (Exception ex)
             {
