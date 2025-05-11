@@ -25,8 +25,7 @@
 
                 <ComboBox x:Name="ComboBox_Method" Header="Method:" Width="300" Height="60" Margin="10" SelectionChanged="ComboBox_Method_SelectionChanged">
                     <ComboBoxItem Content="Linear Regression"/>
-                    <ComboBoxItem Content="Least Squares"/>
-                    <ComboBoxItem Content="Polynomial Curve Fitting"/>
+                    <ComboBoxItem Content="Polynomial Regression"/>
                 </ComboBox>
 
                 <ComboBox x:Name="ComboBox_PointCount" Header="Number of Points:" Width="300" Height="60" Margin="10" SelectionChanged="ComboBox_PointCount_SelectionChanged">

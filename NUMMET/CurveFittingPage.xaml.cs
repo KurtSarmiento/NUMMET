@@ -19,9 +19,8 @@ using ScottPlot.WinUI;
 using static ScottPlot.Drawing;
 using ScottPlot.Colormaps;
 using ScottPlot;
-
-
-
+using System.Numerics;
+using NCalc;
 
 namespace NUMMET
 {
@@ -36,8 +35,8 @@ namespace NUMMET
         {
             var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
 
-            // Show PointInputPanel only for Linear Regression (for now)
-            if (selectedMethod == "Linear Regression")
+            // Show PointInputPanel for methods needing point input
+            if (selectedMethod == "Linear Regression" || selectedMethod == "Polynomial Regression")
             {
                 ComboBox_PointCount.Visibility = Visibility.Visible;
                 PointInputPanel.Visibility = Visibility.Visible;
@@ -46,16 +45,21 @@ namespace NUMMET
             {
                 PointInputPanel.Visibility = Visibility.Collapsed;
                 ComboBox_PointCount.Visibility = Visibility.Collapsed;
-
-                // Other logic depending on method (optional)
             }
 
             // Clear previous entries
             PointInputPanel.Children.Clear();
             TextBlock_Solution.Text = "";
-            PlotView.Visibility = Visibility.Collapsed; // Hide when point count changes
+            PlotView.Visibility = Visibility.Collapsed;
             PlotView.Plot.Clear();
             PlotView.Refresh();
+
+            // Handle method-specific actions
+            if (selectedMethod == "Polynomial Regression")
+            {
+                TextBlock_Solution.Text = "You have selected Polynomial Curve Fitting. Please input your data points and click 'Submit'.";
+                // If you added a degree input, you might make it visible here.
+            }
         }
 
         private void ComboBox_PointCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -114,11 +118,43 @@ namespace NUMMET
             PlotView.Refresh();
         }
 
-
-
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
-            if ((ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString() == "Linear Regression")
+            var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
+
+            if (selectedMethod == "Linear Regression" || selectedMethod == "Least Squares")
+            {
+                // Existing logic for linear regression and least squares
+                List<double> xValues = new List<double>();
+                List<double> yValues = new List<double>();
+
+                foreach (StackPanel row in PointInputPanel.Children)
+                {
+                    var inputs = row.Children.OfType<TextBox>().ToList();
+                    if (inputs.Count >= 2 &&
+                        double.TryParse(inputs[0].Text, out double x) &&
+                        double.TryParse(inputs[1].Text, out double y))
+                    {
+                        xValues.Add(x);
+                        yValues.Add(y);
+                    }
+                    else
+                    {
+                        TextBlock_Solution.Text = "Please ensure all x and y inputs are valid numbers.";
+                        PlotView.Visibility = Visibility.Collapsed;
+                        PlotView.Plot.Clear();
+                        PlotView.Refresh();
+                        return;
+                    }
+                }
+
+                string result = SolveLinearRegression(xValues, yValues);
+                await TypeOutSolution(result);
+                TextBlock_Solution.Text = result;
+                PlotLinearRegression(xValues, yValues);
+                PlotView.Visibility = Visibility.Visible;
+            }
+            else if (selectedMethod == "Polynomial Regression")
             {
                 List<double> xValues = new List<double>();
                 List<double> yValues = new List<double>();
@@ -136,25 +172,25 @@ namespace NUMMET
                     else
                     {
                         TextBlock_Solution.Text = "Please ensure all x and y inputs are valid numbers.";
-                        PlotView.Visibility = Visibility.Collapsed; // Hide on error
+                        PlotView.Visibility = Visibility.Collapsed;
                         PlotView.Plot.Clear();
                         PlotView.Refresh();
                         return;
                     }
                 }
 
-                string result = SolveLinearRegression(xValues, yValues);
+                // Assume a degree for the polynomial (e.g., 2 for quadratic)
+                int polynomialDegree = 2;
+                string result = SolvePolynomialRegression(xValues, yValues, polynomialDegree, out double[] coefficients);
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
-
-                // Plot the points and regression line
-                PlotLinearRegression(xValues, yValues);
+                PlotPolynomialRegression(xValues, yValues, coefficients);
                 PlotView.Visibility = Visibility.Visible;
             }
             else
             {
-                TextBlock_Solution.Text = "Please select 'Linear Regression' to use this function.";
-                PlotView.Visibility = Visibility.Collapsed; // Ensure it's hidden for other methods
+                TextBlock_Solution.Text = "Please select a valid curve fitting method.";
+                PlotView.Visibility = Visibility.Collapsed;
                 PlotView.Plot.Clear();
                 PlotView.Refresh();
             }
@@ -259,6 +295,211 @@ namespace NUMMET
             // Refresh the plot
             PlotView.Refresh();
         }
+        private string SolvePolynomialRegression(List<double> xValues, List<double> yValues, int degree, out double[] coefficients)
+        {
+            // Input validation:
+            if (xValues == null || yValues == null || xValues.Count != yValues.Count || xValues.Count == 0)
+            {
+                coefficients = null;
+                return "Error: Invalid input data. X and Y values must be non-empty and have the same number of points.";
+            }
+
+            if (degree < 1)
+            {
+                coefficients = null;
+                return "Error: Polynomial degree must be 1 or greater.";
+            }
+
+            if (xValues.Count <= degree)
+            {
+                coefficients = null;
+                return "Error: Number of data points must be greater than the polynomial degree to solve for coefficients.";
+            }
+
+            try
+            {
+                int n = xValues.Count;
+                int m = degree + 1; // Number of coefficients
+
+                // 1. Construct the Vandermonde matrix A (as a 2D array).
+                double[,] A = new double[n, m];
+                for (int i = 0; i < n; i++)
+                {
+                    for (int j = 0; j < m; j++)
+                    {
+                        A[i, j] = Math.Pow(xValues[i], j);
+                    }
+                }
+
+                // 2. Create the vector y (as a double array).
+                double[] y = yValues.ToArray();
+
+                // 3. Calculate A^T * A  and A^T * y manually.
+                double[,] AtA = new double[m, m];
+                double[] Aty = new double[m];
+
+                // Calculate A^T * A
+                for (int i = 0; i < m; i++)
+                {
+                    for (int j = 0; j < m; j++)
+                    {
+                        AtA[i, j] = 0;
+                        for (int k = 0; k < n; k++)
+                        {
+                            AtA[i, j] += A[k, i] * A[k, j];
+                        }
+                    }
+                }
+
+                // Calculate A^T * y
+                for (int i = 0; i < m; i++)
+                {
+                    Aty[i] = 0;
+                    for (int k = 0; k < n; k++)
+                    {
+                        Aty[i] += A[k, i] * y[k];
+                    }
+                }
+
+                // 4. Solve the system of linear equations (AtA * c = Aty) using Gaussian elimination.
+                coefficients = SolveLinearSystem(AtA, Aty);
+                if (coefficients == null)
+                {
+                    return "Error: Unable to solve the system of equations.  Matrix is singular."; // Error from SolveLinearSystem
+                }
+
+                // 5. Construct a user-friendly message.
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Polynomial Regression (Degree {degree})");
+                sb.AppendLine("Coefficients:");
+                for (int i = 0; i <= degree; i++)
+                {
+                    sb.AppendLine($"c[{i}] = {coefficients[i]:F4}");
+                }
+                return sb.ToString();
+            }
+            catch (Exception ex)
+            {
+                coefficients = null;
+                return "An error occurred during calculation: " + ex.Message;
+            }
+        }
+
+        private double[] SolveLinearSystem(double[,] matrix, double[] rightSide)
+        {
+            int n = rightSide.Length;
+            double[,] augmentedMatrix = new double[n, n + 1];
+
+            // Create augmented matrix [AtA | Aty]
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    augmentedMatrix[i, j] = matrix[i, j];
+                }
+                augmentedMatrix[i, n] = rightSide[i];
+            }
+
+            // Perform Gaussian elimination with partial pivoting
+            for (int p = 0; p < n; p++)
+            {
+                // Find pivot row with largest absolute value in current column
+                int maxRow = p;
+                for (int i = p + 1; i < n; i++)
+                {
+                    if (Math.Abs(augmentedMatrix[i, p]) > Math.Abs(augmentedMatrix[maxRow, p]))
+                    {
+                        maxRow = i;
+                    }
+                }
+
+                // Swap current row with pivot row
+                if (maxRow != p)
+                {
+                    for (int j = 0; j <= n; j++)
+                    {
+                        double temp = augmentedMatrix[p, j];
+                        augmentedMatrix[p, j] = augmentedMatrix[maxRow, j];
+                        augmentedMatrix[maxRow, j] = temp;
+                    }
+                }
+
+                // Check if matrix is singular (pivot element is zero)
+                if (Math.Abs(augmentedMatrix[p, p]) < 1e-10) // Use a small tolerance
+                {
+                    return null; // Matrix is singular; cannot solve
+                }
+
+                // Eliminate below pivot
+                for (int i = p + 1; i < n; i++)
+                {
+                    double factor = augmentedMatrix[i, p] / augmentedMatrix[p, p];
+                    for (int j = p + 1; j <= n; j++)
+                    {
+                        augmentedMatrix[i, j] -= factor * augmentedMatrix[p, j];
+                    }
+                }
+            }
+
+            // Back substitution
+            double[] solution = new double[n];
+            for (int i = n - 1; i >= 0; i--)
+            {
+                double sum = 0;
+                for (int j = i + 1; j < n; j++)
+                {
+                    sum += augmentedMatrix[i, j] * solution[j];
+                }
+                solution[i] = (augmentedMatrix[i, n] - sum) / augmentedMatrix[i, i];
+            }
+            return solution;
+        }
+
+        private void PlotPolynomialRegression(List<double> xValues, List<double> yValues, double[] coefficients)
+        {
+            var plt = PlotView.Plot;
+            plt.Clear();
+            // Apply your desired plot styling (background, axes, etc.) here
+
+            // Plot the original points
+            double[] xs = xValues.ToArray();
+            double[] ys = yValues.ToArray();
+            var scatterPlot = plt.Add.Scatter(xs, ys); // Use AddScatter
+            scatterPlot.MarkerSize = 5;
+            scatterPlot.Label = "Data Points";
+            scatterPlot.Color = ScottPlot.Color.FromHex("#aeeeee"); // Use ScottPlot.Color
+
+            // Generate points for the polynomial curve
+            double minX = xs.Min();
+            double maxX = xs.Max();
+            double xStep = (maxX - minX) / 100; // Generate more points for a smooth curve
+            List<double> curveXs = new List<double>();
+            List<double> curveYs = new List<double>();
+
+            for (double x = minX; x <= maxX; x += xStep)
+            {
+                curveXs.Add(x);
+                double y = 0;
+                for (int i = 0; i < coefficients.Length; i++)
+                {
+                    y += coefficients[i] * Math.Pow(x, i);
+                }
+                curveYs.Add(y);
+            }
+
+            // Plot the polynomial curve
+            var linePlot = plt.Add.Scatter(curveXs.ToArray(), curveYs.ToArray()); // Use AddLine
+            linePlot.LineWidth = 2;
+            linePlot.Color = ScottPlot.Color.FromHex("#f08080"); // Use ScottPlot.Color
+            linePlot.Label = $"Polynomial (Degree {coefficients.Length - 1})";
+
+            plt.Legend.IsVisible = true;
+            plt.Legend.Location = ScottPlot.Alignment.UpperRight;
+
+            PlotView.Refresh();
+        }
+
+
 
         private void Button_Clear_Click(object sender, RoutedEventArgs e)
         {
