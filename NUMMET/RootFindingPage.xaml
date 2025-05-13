@@ -34,7 +34,7 @@
             <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Stretch" Padding="70">
                 <TextBlock Text="Solution:" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                <ScrollViewer Width="650" Height="400" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Width="750" Height="300" VerticalScrollBarVisibility="Auto">
                     <TextBlock x:Name="TextBlock_Solution" TextWrapping="Wrap" FontFamily="Consolas" FontSize="14" Text="" IsTextSelectionEnabled="True"/>
                 </ScrollViewer>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray" Margin="10,0,10,10" Text="Tip: Use functions like sin(x), cos(x), tan(x), ln(x), log(x), exp(x), pow(x,n). Use ln(x)/ln(base) for log base 'base'."/>
