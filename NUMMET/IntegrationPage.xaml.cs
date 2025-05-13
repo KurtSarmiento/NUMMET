@@ -101,39 +101,6 @@ namespace NUMMET
             plotView.Plot.RenderInMemory(); // Refresh the plot to reflect the changes
         }
 
-
-        private string TrapezoidalRule(string expression, double a, double b, int n)
-        {
-            StringBuilder steps = new StringBuilder();
-            double h = (b - a) / n;
-            steps.AppendLine($"Applying Trapezoidal Rule with n = {n}, h = (b - a) / n = ({b} - {a}) / {n} = {h:F4}");
-            steps.AppendLine($"\n────୨ৎ──── Step 1: Evaluate f(x) at the endpoints and intermediate points: ────୨ৎ────");
-            double sum = 0;
-
-            for (int i = 0; i <= n; i++)
-            {
-                double x = a + i * h;
-                double y = EvaluateFunction(expression, x);
-                if (double.IsNaN(y) || double.IsInfinity(y))
-                {
-                    throw new ArgumentException($"Function evaluation resulted in a non-finite value at x = {x}. Please check your function and bounds.");
-                }
-                steps.AppendLine($"  f(x_{i}) = f({x:F4}) = {y:F4}");
-                if (i == 0 || i == n)
-                    sum += y;
-                else
-                    sum += 2 * y;
-            }
-
-            steps.AppendLine($"\n────୨ৎ──── Step 2: Apply the Trapezoidal Rule formula: ────୨ৎ────");
-            steps.AppendLine($"🌷 Integral ≈ (h / 2) * [f(x_0) + 2f(x_1) + ... + 2f(x_{n - 1}) + f(x_n)]");
-            steps.AppendLine($"            ≈ ({h:F4} / 2) * [{sum:F4}]");
-            double result = (h / 2) * sum;
-            steps.AppendLine($"            ≈ {result:F4}");
-
-            return steps.ToString();
-        }
-
         private (string steps, double[] x_points, double[] y_points) TrapezoidalRuleWithPlotData(string expression, double a, double b, int n)
         {
             StringBuilder steps = new StringBuilder();
@@ -244,48 +211,12 @@ namespace NUMMET
             plotView.Refresh(); // Refresh the plot to reflect the changes
         }
 
-        private string SimpsonsRule(string expression, double a, double b, int n)
-        {
-            StringBuilder steps = new StringBuilder();
-            if (n % 2 != 0)
-            {
-                throw new ArgumentException("The number of divisions for Simpson's 1/3 Rule must be an even integer.");
-            }
-
-            double h = (b - a) / n;
-            steps.AppendLine($"Applying Simpson's 1/3 Rule with n = {n}, h = (b - a) / n = ({b} - {a}) / {n} = {h:F4}");
-            steps.AppendLine($"\n────୨ৎ──── Step 1: Evaluate f(x) at the endpoints and intermediate points: ────୨ৎ────");
-            double sum = 0;
-
-            for (int i = 0; i <= n; i++)
-            {
-                double x = a + i * h;
-                double y = EvaluateFunction(expression, x);
-                if (double.IsNaN(y) || double.IsInfinity(y))
-                {
-                    throw new ArgumentException($"Function evaluation resulted in a non-finite value at x = {x}. Please check your function and bounds.");
-                }
-                steps.AppendLine($"  f(x_{i}) = f({x:F4}) = {y:F4}");
-                if (i == 0 || i == n)
-                    sum += y;
-                else if (i % 2 == 0)
-                    sum += 2 * y;
-                else
-                    sum += 4 * y;
-            }
-
-            steps.AppendLine($"\n────୨ৎ──── Step 2: Apply the Simpson's 1/3 Rule formula: ────୨ৎ────");
-            steps.AppendLine($"🌷 Integral ≈ (h / 3) * [f(x_0) + 4f(x_1) + 2f(x_2) + 4f(x_3) + ... + 4f(x_{n - 1}) + f(x_n)]");
-            steps.AppendLine($"            ≈ ({h:F4} / 3) * [{sum:F4}]");
-            double result = (h / 3) * sum;
-            steps.AppendLine($"            ≈ {result:F4}");
-
-            return steps.ToString();
-        }
-
         private void PlotSimpsons(string expression, double a, double b, int n, double[] x_points, double[] y_points)
         {
-            var plot = new Plot();
+            var plot = plotView.Plot; // Access the existing Plot instance
+
+            // Clear the existing plot to avoid overlapping
+            plot.Clear();
 
             // Plot the original function
             double[] x_fine = Linspace(a, b, 200);
@@ -293,7 +224,7 @@ namespace NUMMET
             plot.Add.Scatter(x_fine, y_fine);
 
             // Visualize the points used for Simpson's rule
-            plot.Add.ScatterPoints(x_points, y_points, color: ScottPlot.Color.FromARGB(0xFF0000FF)); // Blue color
+            plot.Add.ScatterPoints(x_points, y_points, color: ScottPlot.Color.FromARGB(0xFFFF0000)); // Blue color
             plot.Title($"Simpson's 1/3 Rule (n={n})");
             plot.XLabel("x");
             plot.YLabel("f(x)");
