@@ -6,6 +6,7 @@
     xmlns:local="using:NUMMET"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scottplot="using:ScottPlot.WinUI"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -15,6 +16,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
+
 
             <Button x:Name="Button_Back" Content="←" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30" Width="60" Height="40" Click="Button_Back_Click" Grid.Row="1" />
 
@@ -42,6 +44,7 @@
                     <TextBlock x:Name="TextBlock_Solution" TextWrapping="Wrap" FontFamily="Consolas" FontSize="14" IsTextSelectionEnabled="True"/>
                 </ScrollViewer>
                 <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="Gray" Margin="10,0,10,10" Text="Tip: Use functions like sin(x), cos(x), tan(x), ln(x), log(x), exp(x), pow(x,n). Use ln(x)/ln(base) for log base 'base'."/>
+                <scottplot:WinUIPlot x:Name="plotView" Width="750" Height="300"/>
             </StackPanel>
         </Grid>
     </ScrollViewer>
