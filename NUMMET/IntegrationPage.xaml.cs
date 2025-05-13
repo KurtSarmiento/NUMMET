@@ -28,6 +28,7 @@ namespace NUMMET
             this.InitializeComponent();
             Button_Solve.Click += Button_Solve_Click;
             Button_Clear.Click += Button_Clear_Click;
+            plotView.Visibility = Visibility.Collapsed;
         }
 
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
@@ -65,6 +66,7 @@ namespace NUMMET
                         await TypeOutSolution(solutionSteps);
                         TextBlock_Solution.Text = solutionSteps;
                         PlotTrapezoidal(expression, a, b, n, x_points, y_points);
+                        plotView.Visibility = Visibility.Visible; // Show the plot view
                     }
                     else if (method == "Simpson's 1/3")
                     {
@@ -77,6 +79,7 @@ namespace NUMMET
                         await TypeOutSolution(solutionSteps);
                         TextBlock_Solution.Text = solutionSteps;
                         PlotSimpsons(expression, a, b, n, x_points, y_points);
+                        plotView.Visibility = Visibility.Visible; // Show the plot view
                     }
                     else
                     {
@@ -99,6 +102,7 @@ namespace NUMMET
             Division_Number.Text = "";
             plotView.Plot.Clear(); // Clear the plot instead of assigning a new value
             plotView.Plot.RenderInMemory(); // Refresh the plot to reflect the changes
+            plotView.Visibility = Visibility.Collapsed; // Hide the plot view
         }
 
         private (string steps, double[] x_points, double[] y_points) TrapezoidalRuleWithPlotData(string expression, double a, double b, int n)
@@ -186,11 +190,15 @@ namespace NUMMET
 
             // Clear the existing plot to avoid overlapping
             plot.Clear();
+            plotView.Plot.FigureBackground.Color = Color.FromHex("#202020");
+            plotView.Plot.DataBackground.Color = Color.FromHex("#202020");
+            plotView.Plot.Axes.Color(Color.FromHex("#d7d7d7"));
+            plotView.Plot.Grid.MajorLineColor = Color.FromHex("#404040");
 
             // Plot the original function
             double[] x_fine = Linspace(a, b, 200);
             double[] y_fine = x_fine.Select(x => EvaluateFunction(expression, x)).ToArray();
-            plot.Add.Scatter(x_fine, y_fine);
+            plot.Add.Scatter(x_fine, y_fine, ScottPlot.Color.FromHex("#fba2a1"));
 
             // Plot the trapezoids
             for (int i = 0; i < n; i++)
@@ -198,9 +206,10 @@ namespace NUMMET
                 double[] x_trap = { x_points[i], x_points[i + 1], x_points[i + 1], x_points[i] };
                 double[] y_trap = { 0, 0, y_points[i + 1], y_points[i] };
                 var polygon = plot.Add.Polygon(x_trap, y_trap);
-                polygon.FillColor = ScottPlot.Color.FromARGB(0x32008000); // Green color with 50 alpha
+                polygon.FillColor = ScottPlot.Color.FromARGB(0x99fba2a1);
+                polygon.LineColor = ScottPlot.Color.FromHex("#fba2a1"); // Corrected line
 
-                plot.Add.Line(x_points[i], y_points[i], x_points[i + 1], y_points[i + 1]);
+                plot.Add.Line(x_points[i], y_points[i], x_points[i + 1], y_points[i + 1]).Color = ScottPlot.Color.FromHex("#000000");
             }
 
             plot.Title($"Trapezoidal Rule (n={n})");
@@ -221,10 +230,10 @@ namespace NUMMET
             // Plot the original function
             double[] x_fine = Linspace(a, b, 200);
             double[] y_fine = x_fine.Select(x => EvaluateFunction(expression, x)).ToArray();
-            plot.Add.Scatter(x_fine, y_fine);
+            plot.Add.Scatter(x_fine, y_fine, ScottPlot.Color.FromHex("#fba2a1"));
 
             // Visualize the points used for Simpson's rule
-            plot.Add.ScatterPoints(x_points, y_points, color: ScottPlot.Color.FromARGB(0xFFFF0000)); // Blue color
+            plot.Add.ScatterPoints(x_points, y_points, color: ScottPlot.Color.FromARGB(0xFF404040)); // Blue color
             plot.Title($"Simpson's 1/3 Rule (n={n})");
             plot.XLabel("x");
             plot.YLabel("f(x)");
