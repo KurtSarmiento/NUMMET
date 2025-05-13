@@ -36,5 +36,10 @@ namespace NUMMET
         {
             Frame.Navigate(typeof(CurveFittingPage));
         }
+
+        private void Button_Integration_Click(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(IntegrationPage));
+        }
     }
 }

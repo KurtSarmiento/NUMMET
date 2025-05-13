@@ -21,6 +21,7 @@
                 <Button x:Name="Button_RootFinding" Content="Root Finding" Width="300" Click="Button_RootFinding_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
                 <Button x:Name="Button_EquationSolver" Content="Linear Equation Solver" Width="300" Click="Button_EquationSolver_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
                 <Button x:Name="Button_CurveFitting" Content="Curve Fitting" Width="300" Click="Button_CurveFitting_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
+                <Button x:Name="Button_Integration" Content="Integration" Width="300" Click="Button_Integration_Click" HorizontalAlignment="Center" FontSize="18" Background="#fba2a1" Foreground="black" Margin="20"/>
                 <Image Source="Assets/ribbon.png" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
             </StackPanel>
         </Grid>
