@@ -308,6 +308,76 @@ namespace NUMMET
             PlotView.Refresh();
         }
 
+        private double[] SolveLinearSystem(double[,] matrix, double[] rightSide)
+        {
+            int n = rightSide.Length;
+            double[,] augmentedMatrix = new double[n, n + 1];
+
+            // Create augmented matrix [AtA | Aty]
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    augmentedMatrix[i, j] = matrix[i, j];
+                }
+                augmentedMatrix[i, n] = rightSide[i];
+            }
+
+            // Perform Gaussian elimination with partial pivoting
+            for (int p = 0; p < n; p++)
+            {
+                // Find pivot row with largest absolute value in current column
+                int maxRow = p;
+                for (int i = p + 1; i < n; i++)
+                {
+                    if (Math.Abs(augmentedMatrix[i, p]) > Math.Abs(augmentedMatrix[maxRow, p]))
+                    {
+                        maxRow = i;
+                    }
+                }
+
+                // Swap current row with pivot row
+                if (maxRow != p)
+                {
+                    for (int j = 0; j <= n; j++)
+                    {
+                        double temp = augmentedMatrix[p, j];
+                        augmentedMatrix[p, j] = augmentedMatrix[maxRow, j];
+                        augmentedMatrix[maxRow, j] = temp;
+                    }
+                }
+
+                // Check if matrix is singular (pivot element is zero)
+                if (Math.Abs(augmentedMatrix[p, p]) < 1e-10) // Use a small tolerance
+                {
+                    return null; // Matrix is singular; cannot solve
+                }
+
+                // Eliminate below pivot
+                for (int i = p + 1; i < n; i++)
+                {
+                    double factor = augmentedMatrix[i, p] / augmentedMatrix[p, p];
+                    for (int j = p + 1; j <= n; j++)
+                    {
+                        augmentedMatrix[i, j] -= factor * augmentedMatrix[p, j];
+                    }
+                }
+            }
+
+            // Back substitution
+            double[] solution = new double[n];
+            for (int i = n - 1; i >= 0; i--)
+            {
+                double sum = 0;
+                for (int j = i + 1; j < n; j++)
+                {
+                    sum += augmentedMatrix[i, j] * solution[j];
+                }
+                solution[i] = (augmentedMatrix[i, n] - sum) / augmentedMatrix[i, i];
+            }
+            return solution;
+        }
+
         private string SolvePolynomialRegression(List<double> xValues, List<double> yValues, int degree, out double[] coefficients)
         {
             // Input validation:
@@ -454,76 +524,6 @@ namespace NUMMET
                 coefficients = null;
                 return "An error occurred during calculation: " + ex.Message;
             }
-        }
-
-        private double[] SolveLinearSystem(double[,] matrix, double[] rightSide)
-        {
-            int n = rightSide.Length;
-            double[,] augmentedMatrix = new double[n, n + 1];
-
-            // Create augmented matrix [AtA | Aty]
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    augmentedMatrix[i, j] = matrix[i, j];
-                }
-                augmentedMatrix[i, n] = rightSide[i];
-            }
-
-            // Perform Gaussian elimination with partial pivoting
-            for (int p = 0; p < n; p++)
-            {
-                // Find pivot row with largest absolute value in current column
-                int maxRow = p;
-                for (int i = p + 1; i < n; i++)
-                {
-                    if (Math.Abs(augmentedMatrix[i, p]) > Math.Abs(augmentedMatrix[maxRow, p]))
-                    {
-                        maxRow = i;
-                    }
-                }
-
-                // Swap current row with pivot row
-                if (maxRow != p)
-                {
-                    for (int j = 0; j <= n; j++)
-                    {
-                        double temp = augmentedMatrix[p, j];
-                        augmentedMatrix[p, j] = augmentedMatrix[maxRow, j];
-                        augmentedMatrix[maxRow, j] = temp;
-                    }
-                }
-
-                // Check if matrix is singular (pivot element is zero)
-                if (Math.Abs(augmentedMatrix[p, p]) < 1e-10) // Use a small tolerance
-                {
-                    return null; // Matrix is singular; cannot solve
-                }
-
-                // Eliminate below pivot
-                for (int i = p + 1; i < n; i++)
-                {
-                    double factor = augmentedMatrix[i, p] / augmentedMatrix[p, p];
-                    for (int j = p + 1; j <= n; j++)
-                    {
-                        augmentedMatrix[i, j] -= factor * augmentedMatrix[p, j];
-                    }
-                }
-            }
-
-            // Back substitution
-            double[] solution = new double[n];
-            for (int i = n - 1; i >= 0; i--)
-            {
-                double sum = 0;
-                for (int j = i + 1; j < n; j++)
-                {
-                    sum += augmentedMatrix[i, j] * solution[j];
-                }
-                solution[i] = (augmentedMatrix[i, n] - sum) / augmentedMatrix[i, i];
-            }
-            return solution;
         }
 
         private void PlotPolynomialRegression(List<double> xValues, List<double> yValues, double[] coefficients)
