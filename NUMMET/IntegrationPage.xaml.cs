@@ -31,6 +31,18 @@ namespace NUMMET
             plotView.Visibility = Visibility.Collapsed;
         }
 
+        private void ComboBox_Method_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ExpressionInput.Text = "";
+            IntegrationLowerBound.Text = "";
+            IntegrationUpperBound.Text = "";
+            Division_Number.Text = "";
+            TextBlock_Solution.Text = "";
+            plotView.Visibility = Visibility.Collapsed;
+            plotView.Plot.Clear();
+            plotView.Refresh();
+        }
+
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
             if (ComboBox_Method.SelectedItem is ComboBoxItem selectedItem)
@@ -356,5 +368,7 @@ namespace NUMMET
         {
             Frame.GoBack();
         }
+
+        
     }
 }

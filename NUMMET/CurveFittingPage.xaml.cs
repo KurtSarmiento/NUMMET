@@ -40,25 +40,19 @@ namespace NUMMET
             {
                 ComboBox_PointCount.Visibility = Visibility.Visible;
                 PointInputPanel.Visibility = Visibility.Visible;
+                DegreeInputPanel.Visibility = Visibility.Collapsed;
             }
             else
             {
                 PointInputPanel.Visibility = Visibility.Collapsed;
                 ComboBox_PointCount.Visibility = Visibility.Collapsed;
-            }
-
-            // Show/Hide the degree input
-            if (selectedMethod == "Polynomial Regression")
-            {
-                DegreeInputPanel.Visibility = Visibility.Visible; // Make DegreeInputPanel visible
-            }
-            else
-            {
-                DegreeInputPanel.Visibility = Visibility.Collapsed; // Hide DegreeInputPanel
+                DegreeInputPanel.Visibility = Visibility.Collapsed;
             }
 
             // Clear previous entries
+            ComboBox_PointCount.SelectedIndex = -1;
             PointInputPanel.Children.Clear();
+            TextBox_Degree.Text = "";
             TextBlock_Solution.Text = "";
             PlotView.Visibility = Visibility.Collapsed;
             PlotView.Plot.Clear();
@@ -114,6 +108,15 @@ namespace NUMMET
                     pointRow.Children.Add(yInput);
 
                     PointInputPanel.Children.Add(pointRow);
+                    var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
+                    if (selectedMethod == "Polynomial Regression")
+                    {
+                        DegreeInputPanel.Visibility = Visibility.Visible; // Show degree input for polynomial regression
+                    }
+                    else
+                    {
+                        DegreeInputPanel.Visibility = Visibility.Collapsed; // Hide degree input for other methods
+                    }
                 }
             }
             PlotView.Visibility = Visibility.Collapsed; // Hide when method changes
@@ -127,7 +130,6 @@ namespace NUMMET
 
             if (selectedMethod == "Linear Regression" || selectedMethod == "Least Squares")
             {
-                // Existing logic for linear regression and least squares
                 List<double> xValues = new List<double>();
                 List<double> yValues = new List<double>();
 
@@ -151,14 +153,25 @@ namespace NUMMET
                     }
                 }
 
-                string result = SolveLinearRegression(xValues, yValues); // Corrected call
+                string result = SolveLinearRegression(xValues, yValues);
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
-                PlotLinearRegression(xValues, yValues);
-                PlotView.Visibility = Visibility.Visible;
+
+                // Check if the result contains an "Error" message
+                if (!result.Contains("Error"))
+                {
+                    PlotLinearRegression(xValues, yValues);
+                    PlotView.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlotView.Visibility = Visibility.Collapsed;
+                    PlotView.Plot.Clear();
+                    PlotView.Refresh();
+                }
             }
             else if (selectedMethod == "Polynomial Regression")
-            {   
+            {
                 List<double> xValues = new List<double>();
                 List<double> yValues = new List<double>();
 
@@ -194,8 +207,19 @@ namespace NUMMET
                 string result = SolvePolynomialRegression(xValues, yValues, polynomialDegree, out double[] coefficients);
                 await TypeOutSolution(result);
                 TextBlock_Solution.Text = result;
-                PlotPolynomialRegression(xValues, yValues, coefficients);
-                PlotView.Visibility = Visibility.Visible;
+
+                // Check if the result contains an "Error" message
+                if (!result.Contains("Error"))
+                {
+                    PlotPolynomialRegression(xValues, yValues, coefficients);
+                    PlotView.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    PlotView.Visibility = Visibility.Collapsed;
+                    PlotView.Plot.Clear();
+                    PlotView.Refresh();
+                }
             }
             else
             {
@@ -383,19 +407,19 @@ namespace NUMMET
             // Input validation:
             if (xValues == null || yValues == null || xValues.Count != yValues.Count || xValues.Count == 0)
             {
-                coefficients = null;
+                coefficients = new double[0]; // Return an empty array
                 return "Error: Invalid input data. X and Y values must be non-empty and have the same number of points.";
             }
 
             if (degree < 1)
             {
-                coefficients = null;
+                coefficients = new double[0]; // Return an empty array
                 return "Error: Polynomial degree must be 1 or greater.";
             }
 
             if (xValues.Count <= degree)
             {
-                coefficients = null;
+                coefficients = new double[degree + 1]; // Return an array of zeros with the expected size
                 return "Error: Number of data points must be greater than the polynomial degree to solve for coefficients.";
             }
 
