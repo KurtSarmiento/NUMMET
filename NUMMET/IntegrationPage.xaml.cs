@@ -272,7 +272,6 @@ namespace NUMMET
             var e = new Expression(expression);
 
             // Set 'x' parameter if it's actually used in the expression
-            // This prevents NCalc from throwing "Parameter 'x' not found" errors if 'x' isn't in the expression.
             if (expression.Contains("x"))
             {
                 e.Parameters["x"] = x;
@@ -282,14 +281,12 @@ namespace NUMMET
             {
                 try
                 {
-                    // Handle 'pi' as a function for consistency, though 'e' is handled as a parameter.
                     if (name.ToLower() == "pi")
                     {
                         args.Result = Math.PI;
                         return;
                     }
 
-                    // Only evaluate parameters for standard functions (e.g., sin(a), pow(a,b))
                     double a = args.Parameters.Count() > 0 ? Convert.ToDouble(args.Parameters[0].Evaluate()) : double.NaN;
                     double b = args.Parameters.Count() > 1 ? Convert.ToDouble(args.Parameters[1].Evaluate()) : double.NaN;
 
@@ -301,21 +298,46 @@ namespace NUMMET
                         "sin" => Math.Sin(a),
                         "cos" => Math.Cos(a),
                         "tan" => Math.Tan(a),
-                        "exp" => a > 700 ? double.PositiveInfinity : // Prevent overflow
-                                   a < -700 ? 0 : Math.Exp(a),    // Prevent underflow
+                        "cot" => (Math.Abs(Math.Tan(a)) < 1e-9) ? double.NaN : 1.0 / Math.Tan(a),
+                        "csc" => (Math.Abs(Math.Sin(a)) < 1e-9) ? double.NaN : 1.0 / Math.Sin(a),
+                        "sec" => (Math.Abs(Math.Cos(a)) < 1e-9) ? double.NaN : 1.0 / Math.Cos(a),
+                        "asin" => (a < -1 || a > 1) ? double.NaN : Math.Asin(a),
+                        "acos" => (a < -1 || a > 1) ? double.NaN : Math.Acos(a),
+                        "atan" => Math.Atan(a),
+                        "atan2" => Math.Atan2(a, b), // Note the order of arguments here
+                        "sinh" => Math.Sinh(a),
+                        "cosh" => Math.Cosh(a),
+                        "tanh" => Math.Tanh(a),
+                        "exp" => a > 700 ? double.PositiveInfinity :
+                                 a < -700 ? 0 : Math.Exp(a),
+                        "sqrt" => a < 0 ? double.NaN : Math.Sqrt(a),
+                        "abs" => Math.Abs(a),
+                        "ceiling" => Math.Ceiling(a),
+                        "floor" => Math.Floor(a),
+                        "round" => Math.Round(a), // Can have an optional second argument for digits
+                        "sign" => Math.Sign(a),
+                        "log2" => a <= 0 ? double.NaN : Math.Log2(a),
+                        "log10" => a <= 0 ? double.NaN : Math.Log10(a), // Redundant, already included as "log"
+                        "expm1" => Math.Exp(a) - 1,
+                        "log1p" => a <= -1 ? double.NaN : Math.Log(1 + a),
                         _ => double.NaN // Unknown function
                     };
+
+                    // Handle optional second argument for Round
+                    if (name.ToLower() == "round" && args.Parameters.Count() > 1)
+                    {
+                        int digits = Convert.ToInt32(args.Parameters[1].Evaluate());
+                        args.Result = Math.Round(a, digits);
+                    }
                 }
                 catch
                 {
-                    args.Result = double.NaN; // Catch any evaluation errors within the function
+                    args.Result = double.NaN;
                 }
             };
 
             e.EvaluateParameter += (name, args) =>
             {
-                // NCalc by default recognizes "PI" and "E" as parameters.
-                // This makes sure 'e' and 'pi' are handled even if not explicitly as functions.
                 if (name.ToLower() == "e")
                     args.Result = Math.E;
                 else if (name.ToLower() == "pi")
@@ -324,31 +346,26 @@ namespace NUMMET
 
             try
             {
-                // Attempt to evaluate the expression. If it's a simple number or constant, NCalc will handle it.
                 object result = e.Evaluate();
                 if (result is double d)
                 {
                     return d;
                 }
-                // If the result is an int or long, convert it to double
                 else if (result is int || result is long)
                 {
                     return Convert.ToDouble(result);
                 }
                 else
                 {
-                    // If the result is not a numeric type (e.g., boolean from an invalid expression), return NaN
                     return double.NaN;
                 }
             }
             catch (NCalc.EvaluationException)
             {
-                // NCalc can throw EvaluationException for syntax errors or undefined parameters/functions.
                 return double.NaN;
             }
             catch (Exception)
             {
-                // Catch any other unexpected exceptions
                 return double.NaN;
             }
         }
