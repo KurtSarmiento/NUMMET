@@ -18,6 +18,8 @@ using Microsoft.UI.Xaml.Documents;
 using System.Threading.Tasks;
 using ScottPlot;
 using ScottPlot.WinUI;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 namespace NUMMET
 {
@@ -53,6 +55,9 @@ namespace NUMMET
 
                 try
                 {
+                    var player = new MediaPlayer();
+                    player.Source = MediaSource.CreateFromUri(new Uri("ms-appx:///submit.mp3"));
+                    player.Play();
                     a = EvaluateFunction(IntegrationLowerBound.Text, 0);
                     b = EvaluateFunction(IntegrationUpperBound.Text, 0);
 

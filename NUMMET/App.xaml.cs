@@ -15,6 +15,8 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -30,15 +32,24 @@ namespace NUMMET
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
+        public static MediaPlayer? BackgroundMusicPlayer { get; private set; }
         public App()
         {
             this.InitializeComponent();
+            InitializeBackgroundMusic();
         }
 
         /// <summary>
         /// Invoked when the application is launched.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
+        private void InitializeBackgroundMusic()
+        {
+            BackgroundMusicPlayer = new MediaPlayer();
+            BackgroundMusicPlayer.Source = MediaSource.CreateFromUri(new Uri("ms-appx:///background.mp3"));
+            BackgroundMusicPlayer.IsLoopingEnabled = true;
+            BackgroundMusicPlayer.Play();
+        }
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             m_window = new MainWindow();

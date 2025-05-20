@@ -21,6 +21,8 @@ using ScottPlot.Colormaps;
 using ScottPlot;
 using System.Numerics;
 using NCalc;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 namespace NUMMET
 {
@@ -126,6 +128,10 @@ namespace NUMMET
 
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
+            var player = new MediaPlayer();
+            player.Source = MediaSource.CreateFromUri(new Uri("ms-appx:///submit.mp3"));
+            player.Play();
+
             var selectedMethod = (ComboBox_Method.SelectedItem as ComboBoxItem)?.Content.ToString();
 
             if (selectedMethod == "Linear Regression" || selectedMethod == "Least Squares")

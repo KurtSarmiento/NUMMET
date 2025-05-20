@@ -15,12 +15,14 @@
   <ItemGroup>
     <None Remove="Assets\banner.png" />
     <None Remove="Assets\ribbon.png" />
+    <None Remove="background.mp3" />
     <None Remove="CurveFittingPage.xaml" />
     <None Remove="EquationSolverPage.xaml" />
     <None Remove="IntegrationPage.xaml" />
     <None Remove="MainPage.xaml" />
     <None Remove="MODULE1\Bisection.xaml" />
     <None Remove="RootFindingPage.xaml" />
+    <None Remove="submit.mp3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +33,12 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="background.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="submit.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

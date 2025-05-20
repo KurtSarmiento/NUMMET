@@ -15,6 +15,8 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Documents;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 namespace NUMMET
 {
@@ -125,6 +127,10 @@ namespace NUMMET
 
         private async void Button_Solve_Click(object sender, RoutedEventArgs e)
         {
+            var player = new MediaPlayer();
+            player.Source = MediaSource.CreateFromUri(new Uri("ms-appx:///submit.mp3"));
+            player.Play();
+
             double[,] matrix = new double[equationCount, equationCount + 1];
 
             try

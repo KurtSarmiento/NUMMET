@@ -5,6 +5,8 @@ using NCalc;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
+using Windows.Media.Playback;
+using Windows.Media.Core;
 
 
 namespace NUMMET
@@ -85,6 +87,9 @@ namespace NUMMET
         {
             try
             {
+                var player = new MediaPlayer();
+                player.Source = MediaSource.CreateFromUri(new Uri("ms-appx:///submit.mp3"));
+                player.Play();
                 string selectedMethod = (Methods.SelectedItem as ComboBoxItem)?.Content.ToString();
 
                 switch (selectedMethod)
